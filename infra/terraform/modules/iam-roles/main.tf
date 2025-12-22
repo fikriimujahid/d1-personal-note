@@ -444,13 +444,18 @@ resource "aws_iam_policy" "terraform_prod_policy" {
       {
         Effect = "Allow"
         Action = [
-          #"ec2:*",
-          #"autoscaling:*",
-          #"elasticloadbalancing:*",
           "cloudfront:GetDistribution",
           "cloudfront:ListTagsForResource",
+          "cloudfront:TagResource",                 # Add tags to CloudFront resources
+          "cloudfront:UntagResource",               # Remove tags from CloudFront resources
           "cloudfront:GetOriginAccessControl",
-          "cloudfront:UpdateDistribution" 
+          "cloudfront:CreateDistribution",           # Create CloudFront distributions
+          "cloudfront:CreateDistributionWithTags",   # Create with tags in one operation
+          "cloudfront:UpdateDistribution",
+          "cloudfront:DeleteDistribution",           # Delete CloudFront distributions
+          "cloudfront:DeleteOriginAccessControl",
+          "cloudfront:UpdateOriginAccessControl",
+          "cloudfront:CreateOriginAccessControl"
         ]
         # Scope to CloudFront distributions and origin access controls in this account
         # to avoid wildcard resources (tfsec: aws-iam-no-policy-wildcards)
@@ -471,36 +476,142 @@ resource "aws_iam_policy" "terraform_prod_policy" {
       #   ]
       #   #Resource = "*"
       # },
-      # # Statement 3: Storage services
-      # {
-      #   Effect = "Allow"
-      #   Action = [
-      #     #"s3:*",
-      #     #"ebs:*",
-      #     #"efs:*",
-      #   ]
-      #   #Resource = "*"
-      # },
-      # # Statement 4: Database services
-      # {
-      #   Effect = "Allow"
-      #   Action = [
-      #     #"rds:*",
-      #     #"dynamodb:*",
-      #     #"elasticache:*",
-      #     #"redshift:*",
-      #   ]
-      #   #Resource = "*"
-      # },
-      # # Statement 5: Networking and DNS
-      # {
-      #   Effect = "Allow"
-      #   Action = [
-      #     #"route53:*",
-      #     #"acm:*",
-      #   ]
-      #   #Resource = "*"
-      # },
+      # Statement 3: Storage services (S3 for Terraform state)
+      # Required for Terraform backend to read/write state files
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",           # Read state file
+          "s3:PutObject",           # Write/update state file
+          "s3:DeleteObject"         # Delete old state versions (if needed)
+        ]
+        # Scope to state files in the Terraform state bucket
+        # Pattern: arn:aws:s3:::<bucket-name>/<key-path>
+        Resource = [
+          "arn:aws:s3:::terraform-${data.aws_caller_identity.current.account_id}/*"
+        ]
+      },
+      # Statement 3b: S3 bucket-level operations (required for state backend)
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",          # Check if state file exists
+          "s3:GetBucketVersioning"  # Check versioning status
+        ]
+        # Scope to the Terraform state bucket itself (not objects)
+        Resource = [
+          "arn:aws:s3:::terraform-${data.aws_caller_identity.current.account_id}"
+        ]
+      },
+      # Statement 3c: S3 bucket management for application resources
+      # Required for hosting module to create/manage website buckets
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:CreateBucket",                      # Create new buckets
+          "s3:DeleteBucket",                      # Delete buckets
+          "s3:ListBucket",                        # List objects in a specific bucket
+          "s3:GetBucketLocation",                 # Read bucket region (used by waiters)
+          "s3:PutBucketPolicy",                   # Set bucket policies
+          "s3:DeleteBucketPolicy",                # Remove bucket policies
+          "s3:GetBucketPolicy",                   # Read bucket policies
+          "s3:GetBucketAcl",                      # Read bucket ACL
+          "s3:PutBucketAcl",                      # Set bucket ACL
+          "s3:PutBucketVersioning",               # Enable/disable versioning
+          "s3:GetBucketVersioning",               # Read versioning status
+          "s3:PutBucketPublicAccessBlock",        # Configure public access settings
+          "s3:GetBucketPublicAccessBlock",        # Read public access settings
+          "s3:PutEncryptionConfiguration",        # Configure encryption
+          "s3:GetEncryptionConfiguration",        # Read encryption config
+          "s3:PutBucketTagging",                  # Add tags to bucket
+          "s3:GetBucketTagging",                  # Read bucket tags
+          "s3:PutBucketCORS",                     # Configure CORS
+          "s3:GetBucketCORS",                     # Read CORS config
+          "s3:PutBucketWebsite",                  # Configure static website hosting
+          "s3:GetBucketWebsite",                  # Read website config
+          "s3:PutBucketLogging",                  # Configure access logging
+          "s3:GetBucketLogging",                  # Read logging config
+          "s3:GetBucketAccelerateConfiguration",  # Read accelerate config
+          "s3:PutBucketAccelerateConfiguration",  # Configure accelerate
+          "s3:GetAccelerateConfiguration",        # Read accelerate config
+          "s3:GetBucketRequestPayment",          # Read request payment config
+          "s3:GetLifecycleConfiguration",         # Read lifecycle configuration
+          "s3:PutLifecycleConfiguration",         # Set lifecycle configuration
+          "s3:GetReplicationConfiguration",       # Read replication configuration
+          "s3:PutReplicationConfiguration",       # Set replication configuration
+          "s3:GetBucketObjectLockConfiguration",  # Read object lock configuration
+          "s3:PutObjectLockConfiguration",        # Set object lock configuration
+          "s3:ListAllMyBuckets"                   # List all buckets (service-level)
+        ]
+        # Scope to all S3 buckets in this account
+        # Note: CreateBucket is a service-level action that requires "*"
+        # Other actions work on specific bucket ARNs
+        Resource = [
+          "arn:aws:s3:::*"
+        ]
+      },
+      # Statement 3d: S3 object operations for application buckets
+      # Required to manage website content and other application data
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",           # Upload objects
+          "s3:GetObject",           # Download objects
+          "s3:DeleteObject",        # Delete objects
+          "s3:PutObjectAcl",        # Set object ACL
+          "s3:GetObjectAcl"         # Read object ACL
+        ]
+        # Apply to all objects in all buckets
+        # This is intentionally broad for flexibility with different bucket names
+        Resource = [
+          "arn:aws:s3:::*/*"
+        ]
+      },
+      # Statement 4: Database services
+      {
+        Effect = "Allow"
+        Action = [
+          #"rds:*",
+          "dynamodb:CreateTable",              # Create new table
+          "dynamodb:DeleteTable",              # Delete table
+          "dynamodb:DescribeTable",            # Read table configuration
+          "dynamodb:UpdateTable",              # Modify table settings
+          "dynamodb:ListTables",               # List all tables (service-level)
+          "dynamodb:TagResource",              # Add tags to table
+          "dynamodb:UntagResource",            # Remove tags from table
+          "dynamodb:ListTagsOfResource",       # Read table tags
+          "dynamodb:UpdateTimeToLive",         # Configure TTL for auto-expiry
+          "dynamodb:DescribeTimeToLive",       # Read TTL settings
+          "dynamodb:UpdateContinuousBackups",  # Configure point-in-time recovery
+          "dynamodb:DescribeContinuousBackups" # Read backup settings
+          #"elasticache:*",
+          #"redshift:*",
+        ]
+        Resource = [
+          "arn:aws:dynamodb:*:${data.aws_caller_identity.current.account_id}:table/*"
+        ]
+      },
+      # Statement 5: Networking and DNS
+      # Route53 for DNS management, ACM for SSL/TLS certificates
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ListHostedZones",      # List all hosted zones (service-level, requires *)
+          "route53:GetHostedZone",        # Read specific hosted zone details
+          "route53:ListTagsForResource",  # List tags on hosted zones
+          "route53:ListResourceRecordSets", # List DNS records in a zone
+          "route53:ChangeResourceRecordSets", # Create/update/delete DNS records
+          "route53:GetChange",            # Check status of pending DNS changes
+          "acm:ListCertificates",         # List all certificates (service-level, requires *)
+          "acm:GetCertificate",
+          "acm:ListTagsForCertificate",
+          "acm:DescribeCertificate"       # Read specific certificate details
+        ]
+        # Note: ListHostedZones and ListCertificates are service-level actions
+        # that don't support resource-level permissions (they must use "*")
+        # This is an AWS API limitation, not a security oversight
+        Resource = "*"
+      },
       # # Statement 6: Monitoring and logging
       # {
       #   Effect = "Allow"
@@ -519,29 +630,54 @@ resource "aws_iam_policy" "terraform_prod_policy" {
       #   ]
       #   #Resource = "*"
       # },
-      # # Statement 8: IAM read and PassRole (no creation)
-      # {
-      #   Effect = "Allow"
-      #   Action = [
-      #     "iam:GetRole",
-      #     "iam:GetPolicy",
-      #     "iam:GetUser",
-      #     "iam:ListRoles",
-      #     "iam:ListPolicies",
-      #     "iam:ListAttachedRolePolicies",
-      #     "iam:PassRole",
-      #   ]
-      #   Resource = "*"
-      # },
-      # # Statement 9: Systems Manager
-      # {
-      #   Effect = "Allow"
-      #   Action = [
-      #     #"ssm:*",
-      #     #"secretsmanager:*",
-      #   ]
-      #   #Resource = "*"
-      # }
+      # Statement 8: IAM
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:GetRole",
+          "iam:TagRole",
+          "iam:GetPolicy",
+          "iam:GetUser",
+          "iam:ListRoles",
+          "iam:ListPolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:PassRole",
+          "iam:CreateRole",
+          "iam:ListRolePolicies",
+          "iam:ListInstanceProfilesForRole",
+          "iam:DeleteRole",
+          "iam:PutRolePolicy",
+          "iam:GetRolePolicy",
+          "iam:DeleteRolePolicy"
+        ]
+        Resource = "*"
+      },
+      # Statement 9: Cognito for user authentication and authorization
+      # Cognito User Pools for user management, authentication
+      {
+        Effect = "Allow"
+        Action = [
+          "cognito-idp:CreateUserPool",          # Create user pool
+          "cognito-idp:DeleteUserPool",          # Delete user pool
+          "cognito-idp:DescribeUserPool",        # Read user pool details
+          "cognito-idp:UpdateUserPool",          # Update user pool configuration
+          "cognito-idp:CreateUserPoolClient",    # Create app client
+          "cognito-idp:DeleteUserPoolClient",    # Delete app client
+          "cognito-idp:DescribeUserPoolClient",  # Read app client details
+          "cognito-idp:UpdateUserPoolClient",    # Update app client
+          "cognito-idp:ListUserPools",           # List all user pools
+          "cognito-idp:ListUserPoolClients",     # List app clients in a pool
+          "cognito-idp:ListTagsForResource",     # Read resource tags
+          "cognito-idp:TagResource",             # Add tags to resources
+          "cognito-idp:UntagResource",           # Remove tags from resources
+          "cognito-idp:SetUserPoolMfaConfig",    # Configure MFA settings
+          "cognito-idp:GetUserPoolMfaConfig"     # Read MFA configuration
+        ]
+        # Scope to Cognito User Pools in this account and region
+        Resource = [
+          "arn:aws:cognito-idp:*:${data.aws_caller_identity.current.account_id}:userpool/*"
+        ]
+      },
     ]
   })
 
