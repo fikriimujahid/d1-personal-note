@@ -1,0 +1,17 @@
+.copilot/
+
+# Terraform local dirs and state
+**/.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Sensitive or generated configs
+*.tfvars
+*.tfvars.json
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+infra/terraform/environments/main/backend.hcl
