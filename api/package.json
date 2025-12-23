@@ -1,0 +1,38 @@
+{
+  "name": "api-notes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc", 
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "sam:build": "npm run build && sam build",
+    "sam:local": "npm run build && sam local start-api --env-vars env.json --port 3001",
+    "sam:deployfirst": "npm run sam:build && sam deploy --parameter-overrides \"DynamoDBTableName=p1-serverless-web-app-dev-notes UserPoolId=ap-southeast-1_XYJ0KbfqH\" --guided --profile terraform-dev",
+    "sam:deploy": "npm run sam:build && sam deploy --profile terraform-dev",
+    "sam:delete": "sam delete --stack-name p1-serverless-web-app-stack-prod --profile terraform-admin",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.954.0",
+    "@aws-sdk/lib-dynamodb": "^3.954.0",
+    "ulid": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.159",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.3",
+    "esbuild": "^0.27.2",
+    "jest": "^30.2.0",
+    "babel-jest": "^30.2.0",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

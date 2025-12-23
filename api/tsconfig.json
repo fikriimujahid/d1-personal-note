@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    // Target ES2020 for modern Node.js Lambda runtime (Node 18+)
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    
+    // Output directory for compiled JavaScript
+    "outDir": "./dist",
+    "rootDir": "./src",
+    
+    // Include Node.js types (Buffer, process, etc.)
+    "types": ["node"],
+    
+    // Strict type checking (catches more errors)
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Enable source maps for debugging
+    "sourceMap": true,
+    
+    // Allow importing JSON files
+    "resolveJsonModule": true,
+    
+    // Module resolution for Node.js
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+}
