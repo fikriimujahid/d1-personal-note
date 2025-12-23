@@ -1,0 +1,307 @@
+# ==============================================================================
+# AWS SAM TEMPLATE - SERVERLESS NOTES API
+# ==============================================================================
+# This template defines serverless infrastructure using AWS SAM (Serverless
+# Application Model), which simplifies deploying Lambda functions and API Gateway.
+
+# Version of the CloudFormation template format being used
+AWSTemplateFormatVersion: '2010-09-09'
+
+# Transform tells CloudFormation to use SAM syntax (SAM is simpler than raw CloudFormation)
+Transform: AWS::Serverless-2016-10-31
+
+# Human-readable description of what this stack does
+Description: 'Serverless Notes API'
+
+# ==============================================================================
+# GLOBAL CONFIGURATION
+# ==============================================================================
+# Globals apply default settings to all Lambda functions in this template.
+# This prevents repeating the same configuration for each function.
+Globals:
+  Function:
+    # Node.js runtime version - all Lambda functions will use this by default
+    Runtime: nodejs24.x
+    
+    # Maximum time (in seconds) a function can run before AWS terminates it
+    Timeout: 10
+    
+    # Amount of RAM allocated to each function (128 MB to 10,240 MB)
+    # More memory = more CPU power and higher cost
+    MemorySize: 128
+    
+    # AWS X-Ray tracing for monitoring and debugging distributed requests
+    Tracing: Active
+    
+    # CPU architecture - x86_64 is standard, arm64 (Graviton2) is cheaper
+    Architectures:
+      - x86_64
+    
+    # Environment variables available to all Lambda functions
+    Environment:
+      Variables:
+        # Controls logging verbosity (DEBUG, INFO, WARN, ERROR)
+        LOG_LEVEL: INFO
+
+# ==============================================================================
+# PARAMETERS
+# ==============================================================================
+# Parameters are inputs you provide when deploying the stack.
+# They make templates reusable across different environments and configurations.
+Parameters:
+  # Which environment is this deployment for? (dev/staging/main)
+  Environment:
+    Type: String
+    Default: main
+    AllowedValues:
+      - dev        # Development environment
+      - staging    # Pre-production testing environment
+      - main       # Production environment
+    Description: Environment name
+  
+  # Name of the DynamoDB table where notes are stored
+  # This table is created separately by Terraform, not in this template
+  DynamoDBTableName:
+    Type: String
+    Description: Name of the existing DynamoDB table created by Terraform
+    Default: ''
+  
+  # Cognito User Pool ID for authentication
+  # Cognito handles user sign-up, sign-in, and access control
+  UserPoolId:
+    Type: String
+    Description: Cognito User Pool ID created by Terraform
+    Default: ''
+
+# ==============================================================================
+# RESOURCES
+# ==============================================================================
+# Resources are the AWS services and infrastructure components to be created.
+Resources:
+  # -----------------------------------------------------------------------------
+  # API GATEWAY - The HTTP REST API entry point
+  # -----------------------------------------------------------------------------
+  # This is the front door to your application. It receives HTTP requests
+  # from clients (web browsers, mobile apps) and routes them to Lambda functions.
+  NotesApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      # Name of the API in AWS console (includes environment for easy identification)
+      # !Sub performs string substitution - replaces ${Environment} with actual value
+      Name: !Sub 'd1-personal-note-api-${Environment}'
+      
+      # Stage name (e.g., dev, staging, prod) - becomes part of the URL
+      # !Ref retrieves the value of the Environment parameter
+      StageName: !Ref Environment
+      
+      # Enable AWS X-Ray tracing to track requests through your system
+      TracingEnabled: true
+      
+      # CORS (Cross-Origin Resource Sharing) - allows web browsers to call this API
+      # Without CORS, browsers block requests from different domains for security
+      Cors:
+        # HTTP methods that clients are allowed to use
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        
+        # HTTP headers that clients can include in requests
+        AllowHeaders: "'Content-Type,Authorization'"
+        
+        # Which domains can call this API ('*' means all domains - use specific domains in production)
+        AllowOrigin: "'*'"
+      
+      # Authentication and authorization configuration
+      Auth:
+        # By default, all API endpoints require Cognito authentication
+        DefaultAuthorizer: CognitoAuthorizer
+        
+        # Define the authorizer that validates user tokens
+        Authorizers:
+          CognitoAuthorizer:
+            # ARN (Amazon Resource Name) uniquely identifies the Cognito User Pool
+            # !Sub builds the ARN by inserting the region, account ID, and pool ID
+            UserPoolArn: !Sub 'arn:aws:cognito-idp:ap-southeast-1:${AWS::AccountId}:userpool/${UserPoolId}'
+            
+            # Identity configuration
+            Identity:
+              # How long (in seconds) to cache authorization decisions (1 hour)
+              # This reduces calls to Cognito and improves performance
+              RevalidateEvery: 3600
+
+  # -----------------------------------------------------------------------------
+  # READ LAMBDA FUNCTION - Handles fetching notes
+  # -----------------------------------------------------------------------------
+  # Lambda functions are serverless compute - you don't manage servers.
+  # AWS automatically scales them based on traffic and charges only for execution time.
+  ReadNotesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Unique name for this Lambda function in AWS
+      FunctionName: !Sub 'd1-personal-note-read-${Environment}'
+      
+      # Location of the code to deploy (. means current directory)
+      # SAM will package and upload this code to S3 during deployment
+      CodeUri: .
+      
+      # Entry point: which file and function to call when this Lambda runs
+      # Format: <file-path>.<function-name>
+      # TypeScript compiles to dist/ folder, so we point to the compiled JavaScript
+      Handler: dist/handlers/notes/readHandler.handler
+      
+      # Environment variables specific to this function
+      Environment:
+        Variables:
+          # Name of the DynamoDB table to read from
+          # The function code reads this variable to know which table to query
+          TABLE_NAME: !Ref DynamoDBTableName
+      
+      # Events that trigger this Lambda function
+      # Each event creates an API Gateway route that invokes this function
+      Events:
+        # Event 1: List all notes
+        ListNotes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi        # Which API Gateway this belongs to
+            Path: /notes                     # URL path: /notes
+            Method: GET                      # HTTP method: GET
+            # Result: GET /notes → lists all notes for the authenticated user
+        
+        # Event 2: Get a specific note by ID
+        GetNote:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes/{id}                # {id} is a path parameter (e.g., /notes/abc123)
+            Method: GET
+            # Result: GET /notes/abc123 → returns note with ID abc123
+      
+      # IAM Policies - permissions this function needs to access AWS services
+      Policies:
+        # Permission to read from DynamoDB (GetItem, Query, Scan)
+        - DynamoDBReadPolicy:
+            TableName: !Ref DynamoDBTableName
+        
+        # Permission to write detailed metrics to CloudWatch for monitoring
+        - CloudWatchLambdaInsightsExecutionRolePolicy
+      
+      # Tags for organization and cost tracking in AWS
+      Tags:
+        Environment: !Ref Environment
+
+  # -----------------------------------------------------------------------------
+  # WRITE LAMBDA FUNCTION - Handles creating, updating, and deleting notes
+  # -----------------------------------------------------------------------------
+  # Separating read and write functions allows independent scaling and permissions.
+  # Write operations are typically less frequent but more critical than reads.
+  WriteNotesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Unique name for this Lambda function
+      FunctionName: !Sub 'd1-personal-note-write-${Environment}'
+      
+      # Location of the code (same as read function)
+      CodeUri: .
+      
+      # Entry point for write operations
+      Handler: dist/handlers/notes/writeHandler.handler
+      
+      # Environment variables for this function
+      Environment:
+        Variables:
+          # DynamoDB table name for write operations
+          TABLE_NAME: !Ref DynamoDBTableName
+      
+      # Events that trigger this Lambda function
+      Events:
+        # Event 1: OPTIONS request for /notes (CORS preflight)
+        # Browsers send OPTIONS requests before POST/PUT/DELETE to check if they're allowed
+        NotesOptions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes
+            Method: OPTIONS
+            Auth:
+              # No authentication required for OPTIONS (CORS preflight must be open)
+              Authorizer: NONE
+        
+        # Event 2: Create a new note
+        CreateNote:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes                     # POST to /notes creates a new note
+            Method: POST
+            # Auth is inherited from API Gateway default (Cognito required)
+            # Result: POST /notes with JSON body → creates new note
+        
+        # Event 3: OPTIONS request for /notes/{id} (CORS preflight)
+        NoteByIdOptions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes/{id}
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+        
+        # Event 4: Update an existing note
+        UpdateNote:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes/{id}                # PUT to /notes/abc123 updates that note
+            Method: PUT
+            # Result: PUT /notes/abc123 with JSON body → updates note abc123
+        
+        # Event 5: Delete a note
+        DeleteNote:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes/{id}                # DELETE to /notes/abc123 removes that note
+            Method: DELETE
+            # Result: DELETE /notes/abc123 → deletes note abc123
+      
+      # IAM Policies - this function needs full CRUD (Create, Read, Update, Delete)
+      Policies:
+        # Full DynamoDB access: PutItem, UpdateItem, DeleteItem, GetItem, Query
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTableName
+        
+        # CloudWatch monitoring permissions
+        - CloudWatchLambdaInsightsExecutionRolePolicy
+      
+      # Tags for organization
+      Tags:
+        Environment: !Ref Environment
+
+
+# ==============================================================================
+# OUTPUTS
+# ==============================================================================
+# Outputs are values displayed after deployment and can be referenced by other stacks.
+# They're useful for getting information you need to configure other systems.
+Outputs:
+  # The full URL where your API is accessible
+  # Example: https://abc123xyz.execute-api.ap-southeast-1.amazonaws.com/dev
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${NotesApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}'
+  
+  # The unique identifier of your API Gateway
+  # Useful for referencing this API in other CloudFormation templates
+  ApiId:
+    Description: API Gateway ID
+    Value: !Ref NotesApi
+  
+  # Name of the read Lambda function
+  # Useful for configuring monitoring, alarms, or invoking the function directly
+  ReadFunctionName:
+    Description: Read Lambda function name
+    Value: !Ref ReadNotesFunction
+  
+  # Name of the write Lambda function
+  WriteFunctionName:
+    Description: Write Lambda function name
+    Value: !Ref WriteNotesFunction

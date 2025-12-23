@@ -9,8 +9,8 @@
     "outDir": "./dist",
     "rootDir": "./src",
     
-    // Include Node.js types (Buffer, process, etc.)
-    "types": ["node"],
+    // Include Node.js and Jest types (Buffer, process, jest, describe, it, expect, etc.)
+    "types": ["node", "jest"],
     
     // Strict type checking (catches more errors)
     "strict": true,
@@ -27,6 +27,8 @@
     // Module resolution for Node.js
     "moduleResolution": "node"
   },
+  // Only include source files for Lambda deployment
+  // Tests are handled by Jest with its own TypeScript configuration
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "tests"]
 }

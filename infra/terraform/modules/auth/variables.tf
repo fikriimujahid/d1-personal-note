@@ -61,7 +61,7 @@ variable "tags" {
   #
   # WHY DEFAULT TO EMPTY?
   # Some users might not need tags, so empty {} is a reasonable default
-  default     = {}
+  default = {}
 }
 
 variable "cognito_tier" {

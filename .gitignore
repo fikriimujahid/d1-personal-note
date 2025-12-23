@@ -24,3 +24,14 @@ yarn-error.log*
 package-lock.json
 dist/
 build/
+
+# AWS SAM
+.aws-sam/
+samconfig.toml
+samconfig.*.toml
+
+# Jest & Test Coverage
+coverage/
+.coverage/
+*.lcov
+jest.config.js

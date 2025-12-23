@@ -24,9 +24,9 @@ terraform {
 # Route53 Hosted Zone - DNS Service for Your Domain
 # Why: We need to add DNS records pointing users to our CloudFront distribution
 data "aws_route53_zone" "existing" {
-  count        = length(var.domain_aliases) > 0 ? 1 : 0  # Only if custom domains provided
-  name         = var.domain_name                          # The domain name (e.g., "example.com")
-  private_zone = false                                    # Public DNS (not internal to VPC)
+  count        = length(var.domain_aliases) > 0 ? 1 : 0 # Only if custom domains provided
+  name         = var.domain_name                        # The domain name (e.g., "example.com")
+  private_zone = false                                  # Public DNS (not internal to VPC)
 }
 
 # ACM (AWS Certificate Manager) - HTTPS SSL/TLS Certificate
@@ -34,11 +34,11 @@ data "aws_route53_zone" "existing" {
 # SECURITY: This must be in us-east-1 region - AWS requirement for CloudFront
 # LEARNING NOTE: Certificates must be ISSUED (not pending) to be used
 data "aws_acm_certificate" "existing" {
-  count           = length(var.domain_aliases) > 0 ? 1 : 0  # Only if custom domains
-  domain          = var.domain_name
-  most_recent     = true                                     # Use the newest cert if multiple exist
-  statuses        = ["ISSUED"]                              # Only certificates that are ready
-  provider        = aws.us_east_1                           # REQUIRED: Certificates for CloudFront
+  count       = length(var.domain_aliases) > 0 ? 1 : 0 # Only if custom domains
+  domain      = var.domain_name
+  most_recent = true          # Use the newest cert if multiple exist
+  statuses    = ["ISSUED"]    # Only certificates that are ready
+  provider    = aws.us_east_1 # REQUIRED: Certificates for CloudFront
 }
 
 # ===========================================================================
@@ -49,7 +49,7 @@ data "aws_acm_certificate" "existing" {
 # SECURITY: This bucket will be PRIVATE - only CloudFront can read from it
 #           (Users access it through CloudFront, not directly)
 resource "aws_s3_bucket" "website" {
-  bucket = var.bucket_name  # Name must be globally unique across all of AWS
+  bucket = var.bucket_name # Name must be globally unique across all of AWS
 
   tags = merge(var.tags, {
     Name = var.bucket_name
@@ -61,7 +61,7 @@ resource "aws_s3_bucket" "website" {
 # Use Case: If someone accidentally uploads a bad file, you can rollback
 # COST NOTE: Storing multiple versions costs more money
 resource "aws_s3_bucket_versioning" "website" {
-  bucket = aws_s3_bucket.website.id  # Reference to S3 bucket created above
+  bucket = aws_s3_bucket.website.id # Reference to S3 bucket created above
 
   versioning_configuration {
     status = var.enable_versioning ? "Enabled" : "Disabled"
@@ -77,9 +77,9 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "website" {
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = var.sse_algorithm  # Usually "AES256" (SSE-S3) or "aws:kms" (SSE-KMS)
+      sse_algorithm = var.sse_algorithm # Usually "AES256" (SSE-S3) or "aws:kms" (SSE-KMS)
     }
-    bucket_key_enabled = true  # Use a bucket key for faster encryption/decryption
+    bucket_key_enabled = true # Use a bucket key for faster encryption/decryption
   }
 }
 
@@ -90,10 +90,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "website" {
 resource "aws_s3_bucket_public_access_block" "website" {
   bucket = aws_s3_bucket.website.id
 
-  block_public_acls       = true  # Prevent ACL grants that make bucket public
-  block_public_policy     = true  # Prevent bucket policies that make it public
-  ignore_public_acls      = true  # Ignore existing public ACLs
-  restrict_public_buckets = true  # Restrict access even with existing public settings
+  block_public_acls       = true # Prevent ACL grants that make bucket public
+  block_public_policy     = true # Prevent bucket policies that make it public
+  ignore_public_acls      = true # Ignore existing public ACLs
+  restrict_public_buckets = true # Restrict access even with existing public settings
 }
 
 # S3 Bucket Lifecycle Configuration - Automatic Cleanup for Cost Savings
@@ -115,7 +115,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "website" {
     filter {} # Apply to all objects (empty filter = everything in bucket)
 
     abort_incomplete_multipart_upload {
-      days_after_initiation = 7  # Delete incomplete uploads older than 7 days
+      days_after_initiation = 7 # Delete incomplete uploads older than 7 days
     }
   }
 
@@ -166,7 +166,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "website" {
       filter {} # Apply to all objects
 
       expiration {
-        expired_object_delete_marker = true  # Delete outdated delete markers
+        expired_object_delete_marker = true # Delete outdated delete markers
       }
     }
   }
@@ -183,12 +183,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "website" {
 # SECURITY: Highly recommended for any public-facing website. Adds some cost but protects against major attack types
 
 resource "aws_wafv2_web_acl" "cloudfront" {
-  count       = var.enable_waf ? 1 : 0  # Only create if WAF is enabled
-  provider    = aws.us_east_1  # REQUIRED: CloudFront WAFs must be in us-east-1
-  
+  count    = var.enable_waf ? 1 : 0 # Only create if WAF is enabled
+  provider = aws.us_east_1          # REQUIRED: CloudFront WAFs must be in us-east-1
+
   name        = "${var.project}-${var.environment}-cloudfront-waf"
   description = "WAF for CloudFront distribution - ${var.environment} environment"
-  scope       = "CLOUDFRONT"  # This WAF protects CloudFront (not ALB or API Gateway)
+  scope       = "CLOUDFRONT" # This WAF protects CloudFront (not ALB or API Gateway)
 
   # DEFAULT ACTION: What to do with requests that don't match any rules
   # "allow" = Let them through (rules below will block bad requests)
@@ -209,23 +209,23 @@ resource "aws_wafv2_web_acl" "cloudfront" {
   # Why AWS Managed: AWS maintains these rules, updating them as new attacks are discovered. You don't have to maintain them.
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
-    priority = 1  # Priority order: lower numbers evaluated first
+    priority = 1 # Priority order: lower numbers evaluated first
 
     override_action {
-      none {}  # Use the rule group's built-in actions (don't override)
+      none {} # Use the rule group's built-in actions (don't override)
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
-        vendor_name = "AWS"  # AWS provides this rule set
+        vendor_name = "AWS" # AWS provides this rule set
       }
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = true  # Log metrics to CloudWatch for monitoring
+      cloudwatch_metrics_enabled = true # Log metrics to CloudWatch for monitoring
       metric_name                = "CommonRuleSetMetric"
-      sampled_requests_enabled   = true  # Log sample of matched requests
+      sampled_requests_enabled   = true # Log sample of matched requests
     }
   }
 
@@ -237,16 +237,16 @@ resource "aws_wafv2_web_acl" "cloudfront" {
   # How: If an IP makes > var.waf_rate_limit requests in 5 min = block it
   rule {
     name     = "RateLimitRule"
-    priority = 2  # Evaluated second (after Common Rule Set)
+    priority = 2 # Evaluated second (after Common Rule Set)
 
     action {
-      block {}  # Action when rate limit exceeded: BLOCK the request
+      block {} # Action when rate limit exceeded: BLOCK the request
     }
 
     statement {
       rate_based_statement {
-        limit              = var.waf_rate_limit  # Max requests per IP per 5 min
-        aggregate_key_type = "IP"  # Count requests PER IP ADDRESS
+        limit              = var.waf_rate_limit # Max requests per IP per 5 min
+        aggregate_key_type = "IP"               # Count requests PER IP ADDRESS
       }
     }
 
@@ -285,9 +285,9 @@ resource "aws_wafv2_web_acl" "cloudfront" {
 resource "aws_cloudfront_origin_access_control" "website" {
   name                              = "${var.bucket_name}-oac"
   description                       = "OAC for ${var.bucket_name}"
-  origin_access_control_origin_type = "s3"      # This OAC is for S3
-  signing_behavior                  = "always"   # Always sign requests (always use OAC)
-  signing_protocol                  = "sigv4"    # Use AWS Signature Version 4
+  origin_access_control_origin_type = "s3"     # This OAC is for S3
+  signing_behavior                  = "always" # Always sign requests (always use OAC)
+  signing_protocol                  = "sigv4"  # Use AWS Signature Version 4
 }
 
 # ===========================================================================
@@ -318,18 +318,18 @@ resource "aws_cloudfront_origin_access_control" "website" {
 #     # Extract the request from the CloudFront event
 #     request = event['Records'][0]['cf']['request']
 #     uri = request['uri']
-    
+
 #     # REWRITE RULE 1: If URI ends with /, append index.html
 #     # Example: /about/ → /about/index.html
 #     if uri.endswith('/'):
 #         request['uri'] = uri + 'index.html'
-    
+
 #     # REWRITE RULE 2: If URI has no extension, append /index.html
 #     # Example: /about (no slash, no extension) → /about/index.html
 #     # This doesn't match if URI ends with . (like /file.txt)
 #     elif '.' not in uri.split('/')[-1]:
 #         request['uri'] = uri + '/index.html'
-    
+
 #     # Return the (possibly modified) request
 #     return request
 # EOT
@@ -401,15 +401,15 @@ resource "aws_cloudfront_origin_access_control" "website" {
 #                "Origins" = Where content comes from (in our case: S3)
 
 resource "aws_cloudfront_distribution" "website" {
-  enabled         = true      # Enable distribution (false would disable it)
-  is_ipv6_enabled = true      # Support IPv6 addresses
-  comment         = "CloudFront distribution for ${var.bucket_name}"
-  default_root_object = var.default_root_object  # Usually "index.html"
-  price_class     = var.price_class  # Cost optimization: which edge locations to use
-                                     # PriceClass_100 = cheapest (fewer locations)
-                                     # PriceClass_All = all locations (most expensive)
+  enabled             = true # Enable distribution (false would disable it)
+  is_ipv6_enabled     = true # Support IPv6 addresses
+  comment             = "CloudFront distribution for ${var.bucket_name}"
+  default_root_object = var.default_root_object # Usually "index.html"
+  price_class         = var.price_class         # Cost optimization: which edge locations to use
+  # PriceClass_100 = cheapest (fewer locations)
+  # PriceClass_All = all locations (most expensive)
 
-  aliases = var.domain_aliases  # Custom domain names (e.g., "example.com")
+  aliases = var.domain_aliases # Custom domain names (e.g., "example.com")
 
   # =========================================================================
   # ORIGIN: Where content comes from
@@ -428,18 +428,18 @@ resource "aws_cloudfront_distribution" "website" {
   # =========================================================================
   default_cache_behavior {
     # ALLOWED METHODS: What HTTP verbs should be processed
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
     # GET = download files
     # HEAD = download metadata (for testing)
     # OPTIONS = CORS preflight requests
     # We DON'T allow POST/PUT/DELETE (this is read-only)
 
-    cached_methods = ["GET", "HEAD"]  # Only cache GET and HEAD
-                                      # OPTIONS responses change, don't cache them
+    cached_methods = ["GET", "HEAD"] # Only cache GET and HEAD
+    # OPTIONS responses change, don't cache them
 
     target_origin_id = "S3-${aws_s3_bucket.website.id}"
-    compress         = true  # Compress files (gzip) to reduce bandwidth
-                             # Saves money and speeds up users
+    compress         = true # Compress files (gzip) to reduce bandwidth
+    # Saves money and speeds up users
     viewer_protocol_policy = "redirect-to-https"
     # SECURITY: Always use HTTPS
     # redirect-to-https = HTTP requests automatically → HTTPS
@@ -491,11 +491,11 @@ resource "aws_cloudfront_distribution" "website" {
   # SECURITY: All served via HTTPS (TLS 1.2 minimum)
   viewer_certificate {
     # If custom domains provided: use ACM certificate (we looked it up earlier)
-    acm_certificate_arn      = length(var.domain_aliases) > 0 ? data.aws_acm_certificate.existing[0].arn : null
+    acm_certificate_arn = length(var.domain_aliases) > 0 ? data.aws_acm_certificate.existing[0].arn : null
     # If no custom domains: use CloudFront default certificate
     cloudfront_default_certificate = length(var.domain_aliases) == 0 ? true : null
     # SNI Only = CloudFront uses Server Name Indication (modern, efficient)
-    ssl_support_method       = length(var.domain_aliases) > 0 ? "sni-only" : null
+    ssl_support_method = length(var.domain_aliases) > 0 ? "sni-only" : null
     # Minimum TLS 1.2 = Don't support older, insecure versions
     minimum_protocol_version = "TLSv1.2_2021"
   }
@@ -507,9 +507,9 @@ resource "aws_cloudfront_distribution" "website" {
   dynamic "logging_config" {
     for_each = var.enable_logging ? [1] : []
     content {
-      bucket          = var.logging_bucket  # S3 bucket to store access logs
-      prefix          = var.logging_prefix  # Folder prefix (e.g., "cloudfront-logs/")
-      include_cookies = false  # Don't log cookies (privacy)
+      bucket          = var.logging_bucket # S3 bucket to store access logs
+      prefix          = var.logging_prefix # Folder prefix (e.g., "cloudfront-logs/")
+      include_cookies = false              # Don't log cookies (privacy)
     }
   }
 
@@ -551,10 +551,10 @@ resource "aws_s3_bucket_policy" "cloudfront_oac" {
         Sid    = "AllowCloudFrontServicePrincipal"
         Effect = "Allow"
         Principal = {
-          Service = "cloudfront.amazonaws.com"  # Only CloudFront service
+          Service = "cloudfront.amazonaws.com" # Only CloudFront service
         }
-        Action   = "s3:GetObject"  # Only READ permission (not write, delete, etc.)
-        Resource = "${aws_s3_bucket.website.arn}/*"  # All objects in bucket
+        Action   = "s3:GetObject"                   # Only READ permission (not write, delete, etc.)
+        Resource = "${aws_s3_bucket.website.arn}/*" # All objects in bucket
         Condition = {
           StringEquals = {
             "AWS:SourceArn" = aws_cloudfront_distribution.website.arn
@@ -592,14 +592,14 @@ resource "aws_s3_bucket_policy" "cloudfront_oac" {
 resource "aws_route53_record" "cloudfront_a" {
   for_each = toset(var.domain_aliases)
 
-  zone_id = data.aws_route53_zone.existing[0].zone_id  # Our Route53 zone
-  name    = each.value  # The domain name (e.g., "example.com" or "www.example.com")
-  type    = "A"         # A record type
+  zone_id = data.aws_route53_zone.existing[0].zone_id # Our Route53 zone
+  name    = each.value                                # The domain name (e.g., "example.com" or "www.example.com")
+  type    = "A"                                       # A record type
 
   alias {
-    name                   = aws_cloudfront_distribution.website.domain_name
+    name = aws_cloudfront_distribution.website.domain_name
     # CloudFront gives us a domain like: d123.cloudfront.net
-    zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
+    zone_id = aws_cloudfront_distribution.website.hosted_zone_id
     # Each service has a zone_id (CloudFront's zone_id)
     evaluate_target_health = false
     # false = don't check if CloudFront is healthy before responding

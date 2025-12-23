@@ -103,10 +103,10 @@ variable "environment" {
 # ------------------------------------------------------------------------------
 variable "tables" {
   description = "Map of DynamoDB tables to create (key = table name, value = table configuration)"
-  
+
   # Complex type definition - each table must have this structure:
   type = map(object({
-    
+
     # ------------------------------------------------------------------------
     # FIELD: billing_mode
     # ------------------------------------------------------------------------
@@ -128,7 +128,7 @@ variable "tables" {
     #     - Can save 20-40% on costs if traffic is stable
     # ------------------------------------------------------------------------
     billing_mode = string
-    
+
     # ------------------------------------------------------------------------
     # FIELD: table_class
     # ------------------------------------------------------------------------
@@ -149,7 +149,7 @@ variable "tables" {
     #   Savings: $1.19/month (43% cheaper)
     # ------------------------------------------------------------------------
     table_class = string
-    
+
     # ------------------------------------------------------------------------
     # FIELD: hash_key (Partition Key)
     # ------------------------------------------------------------------------
@@ -174,7 +174,7 @@ variable "tables" {
     #   Must be one of the attribute names defined in 'attributes' list below.
     # ------------------------------------------------------------------------
     hash_key = string
-    
+
     # ------------------------------------------------------------------------
     # FIELD: range_key (Sort Key)
     # ------------------------------------------------------------------------
@@ -207,7 +207,7 @@ variable "tables" {
     #   Must be one of the attribute names in 'attributes', or null.
     # ------------------------------------------------------------------------
     range_key = string
-    
+
     # ------------------------------------------------------------------------
     # FIELD: attributes
     # ------------------------------------------------------------------------
@@ -251,10 +251,10 @@ variable "tables" {
     #   the 2-3 used in your keys here!
     # ------------------------------------------------------------------------
     attributes = list(object({
-      name = string  # Attribute name (e.g., "user_id")
-      type = string  # Data type: "S" (string), "N" (number), or "B" (binary)
+      name = string # Attribute name (e.g., "user_id")
+      type = string # Data type: "S" (string), "N" (number), or "B" (binary)
     }))
-    
+
     # ------------------------------------------------------------------------
     # FIELD: deletion_protection_enabled
     # ------------------------------------------------------------------------
@@ -292,7 +292,7 @@ variable "tables" {
     #   during refactoring or cleanup scripts. Always enable for production!
     # ------------------------------------------------------------------------
     deletion_protection_enabled = bool
-    
+
     # ------------------------------------------------------------------------
     # FIELD: ttl_attribute
     # ------------------------------------------------------------------------
@@ -345,7 +345,7 @@ variable "tables" {
     #   - Your application should still check if data is expired
     # ------------------------------------------------------------------------
     ttl_attribute = string
-    
+
     # ------------------------------------------------------------------------
     # FIELD: on_demand_throughput
     # ------------------------------------------------------------------------
@@ -402,11 +402,11 @@ variable "tables" {
     #   Can't provide just one.
     # ------------------------------------------------------------------------
     on_demand_throughput = object({
-      max_read_request_units  = number  # Maximum reads per second
-      max_write_request_units = number  # Maximum writes per second
+      max_read_request_units  = number # Maximum reads per second
+      max_write_request_units = number # Maximum writes per second
     })
   }))
-  
+
   # Default value: empty map = no tables created
   # This makes the 'tables' variable optional
   default = {}
@@ -467,7 +467,7 @@ variable "tables" {
 variable "tags" {
   description = "Common resource tags to apply to all resources (map of key-value pairs)"
   type        = map(string)
-  
+
   # Default: empty map = no common tags
   # Table-specific tags (Name, Table) are still added in main.tf
   default = {}

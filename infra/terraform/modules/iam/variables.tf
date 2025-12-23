@@ -15,14 +15,14 @@
 variable "project" {
   description = "Project name used for resource naming and namespacing. Should be lowercase and hyphen-separated."
   type        = string
-  
+
   # TERRAFORM CONCEPT: validation blocks enforce constraints at plan time.
   # This catches configuration errors before attempting to create resources.
   validation {
     condition     = can(regex("^[a-z0-9-]+$", var.project))
     error_message = "Project name must contain only lowercase letters, numbers, and hyphens."
   }
-  
+
   validation {
     condition     = length(var.project) >= 3 && length(var.project) <= 32
     error_message = "Project name must be between 3 and 32 characters to ensure valid AWS resource names."
@@ -39,7 +39,7 @@ variable "project" {
 variable "environment" {
   description = "Environment name (dev, staging, main). Used for resource naming and environment-specific configurations."
   type        = string
-  
+
   # TERRAFORM CONCEPT: validation with allowed values creates an "enum" behavior.
   validation {
     condition     = contains(["dev", "staging", "main"], var.environment)
@@ -57,11 +57,11 @@ variable "environment" {
 variable "tags" {
   description = "Common tags to apply to all IAM resources. Used for cost allocation, ownership tracking, and compliance."
   type        = map(string)
-  
+
   # TERRAFORM CONCEPT: default = {} means tags are optional.
   # If not provided, resources get an empty tag set.
-  default     = {}
-  
+  default = {}
+
   # Example of how tags might be used:
   # tags = {
   #   "Team"        = "Backend"

@@ -27,8 +27,8 @@
 # ------------------------------------------------------------------------------
 variable "project" {
   description = "Project name used to prefix all resource names for easy identification"
-  type = string
-  
+  type        = string
+
   # LEARNING NOTE: Why no default value?
   # We intentionally don't provide a default because every project should
   # explicitly name itself. This prevents accidental resource naming conflicts.
@@ -46,7 +46,7 @@ variable "terraform_state_bucket_arn" {
   # This file tracks which resources exist and their current configuration.
   # Storing state in S3 allows teams to collaborate safely.
   description = "ARN of the S3 bucket where Terraform state is stored. Used to grant IAM permissions for state management."
-  type = string
+  type        = string
 }
 
 # ------------------------------------------------------------------------------
@@ -69,8 +69,8 @@ variable "github_oidc_provider_arn" {
   # SECURITY BENEFIT: If GitHub gets compromised, attackers can't steal
   # permanent AWS credentials because none are stored.
   description = "ARN of the GitHub OIDC provider. Enables GitHub Actions to authenticate with AWS without storing credentials."
-  type = string
-  
+  type        = string
+
   # LEARNING NOTE: Why this is better than access keys
   # Old way: Create IAM user, generate access keys, store in GitHub secrets
   # Problems: Keys never expire, hard to rotate, can leak
@@ -93,5 +93,5 @@ variable "github_repo" {
   # HOW IT'S USED: This value goes into the IAM role's trust policy condition:
   # "token.actions.githubusercontent.com:sub": "repo:owner/repository:*"
   description = "GitHub repository in format 'owner/repo'. Used to restrict IAM role access to specific repository."
-  type = string
+  type        = string
 }

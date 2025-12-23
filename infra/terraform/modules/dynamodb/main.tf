@@ -143,10 +143,10 @@ resource "aws_dynamodb_table" "main" {
   dynamic "attribute" {
     # Loop through each attribute definition
     for_each = each.value.attributes
-    
+
     content {
-      name = attribute.value.name  # Attribute name (e.g., "user_id")
-      type = attribute.value.type  # Data type: S, N, or B
+      name = attribute.value.name # Attribute name (e.g., "user_id")
+      type = attribute.value.type # Data type: S, N, or B
     }
   }
 
@@ -220,10 +220,10 @@ resource "aws_dynamodb_table" "main" {
     # Create TTL block only if ttl_attribute is not null
     # The [1] creates a list with one element to iterate over
     for_each = each.value.ttl_attribute != null ? [1] : []
-    
+
     content {
       enabled        = true
-      attribute_name = each.value.ttl_attribute  # Name of the timestamp attribute
+      attribute_name = each.value.ttl_attribute # Name of the timestamp attribute
     }
   }
 
@@ -280,7 +280,7 @@ resource "aws_dynamodb_table" "main" {
   dynamic "on_demand_throughput" {
     # Create block only if on_demand_throughput is configured
     for_each = each.value.on_demand_throughput != null ? [each.value.on_demand_throughput] : []
-    
+
     content {
       max_read_request_units  = on_demand_throughput.value.max_read_request_units
       max_write_request_units = on_demand_throughput.value.max_write_request_units
@@ -318,7 +318,7 @@ resource "aws_dynamodb_table" "main" {
   #   - Automate tagging (don't rely on manual entry)
   # --------------------------------------------------------------------------
   tags = merge(var.tags, {
-    Name  = "${var.project}-${var.environment}-${each.key}"  # Human-readable name
-    Table = each.key                                          # Original table name
+    Name  = "${var.project}-${var.environment}-${each.key}" # Human-readable name
+    Table = each.key                                        # Original table name
   })
 }

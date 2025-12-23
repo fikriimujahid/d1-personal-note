@@ -9,7 +9,7 @@
     "test": "jest",
     "sam:build": "npm run build && sam build",
     "sam:local": "npm run build && sam local start-api --env-vars env.json --port 3001",
-    "sam:deployfirst": "npm run sam:build && sam deploy --parameter-overrides \"DynamoDBTableName=p1-serverless-web-app-dev-notes UserPoolId=ap-southeast-1_XYJ0KbfqH\" --guided --profile terraform-dev",
+    "sam:deployfirst": "npm run sam:build && sam deploy --parameter-overrides \"DynamoDBTableName=d1-personal-note-main-notes UserPoolId=ap-southeast-1_fcnc1YiM3\" --guided --profile terraform-prod",
     "sam:deploy": "npm run sam:build && sam deploy --profile terraform-dev",
     "sam:delete": "sam delete --stack-name p1-serverless-web-app-stack-prod --profile terraform-admin",
     "clean": "rm -rf dist"

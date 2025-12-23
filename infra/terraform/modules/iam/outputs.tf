@@ -17,7 +17,7 @@
 output "lambda_execution_role_arn" {
   description = "ARN of the IAM role for Lambda function execution. Pass this to aws_lambda_function.role to grant Lambda the necessary permissions."
   value       = aws_iam_role.lambda_execution_role.arn
-  
+
   # TERRAFORM CONCEPT: This creates an implicit dependency.
   # Any resource using this output will wait for the role to be created.
 }

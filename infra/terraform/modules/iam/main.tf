@@ -50,7 +50,7 @@ resource "aws_iam_role" "lambda_execution_role" {
 # Alternative: Could use managed policies, but inline gives us precise control.
 resource "aws_iam_role_policy" "lambda_execution_policy" {
   name = "${var.project}-lambda-execution-policy-${var.environment}"
-  
+
   # TERRAFORM CONCEPT: attribute references create an implicit dependency.
   # This policy won't be created until the role exists.
   role = aws_iam_role.lambda_execution_role.id
@@ -67,15 +67,15 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",   # Create log group on first invocation
-          "logs:CreateLogStream",  # Create log stream for each execution
-          "logs:PutLogEvents"      # Write log entries
+          "logs:CreateLogGroup",  # Create log group on first invocation
+          "logs:CreateLogStream", # Create log stream for each execution
+          "logs:PutLogEvents"     # Write log entries
         ]
         # Resource scope: All log groups in this region/account.
         # Better alternative: "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.project}-*"
         Resource = "arn:aws:logs:*:*:*"
       },
-      
+
       # PERMISSION 2: DynamoDB (for data storage)
       # ------------------------------------------------------------------
       # Why: Lambda functions read/write application data to DynamoDB tables.
@@ -83,17 +83,17 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
       {
         Effect = "Allow"
         Action = [
-          "dynamodb:GetItem",     # Read single item by key
-          "dynamodb:PutItem",     # Write/overwrite single item
-          "dynamodb:Query",       # Read multiple items efficiently
-          "dynamodb:UpdateItem",  # Modify specific attributes
-          "dynamodb:DeleteItem"   # Remove item
+          "dynamodb:GetItem",    # Read single item by key
+          "dynamodb:PutItem",    # Write/overwrite single item
+          "dynamodb:Query",      # Read multiple items efficiently
+          "dynamodb:UpdateItem", # Modify specific attributes
+          "dynamodb:DeleteItem"  # Remove item
         ]
         # Resource scope: Only tables following our naming convention.
         # Pattern: ${project}-*-${environment} (e.g., myapp-notes-dev)
         Resource = "arn:aws:dynamodb:*:*:table/${var.project}-*-${var.environment}"
       },
-      
+
       # PERMISSION 3: Secrets Manager (for sensitive configuration)
       # ------------------------------------------------------------------
       # Why: Lambda needs API keys, database credentials, etc. without hardcoding.
@@ -101,7 +101,7 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
       {
         Effect = "Allow"
         Action = [
-          "secretsmanager:GetSecretValue"  # Read secret value only
+          "secretsmanager:GetSecretValue" # Read secret value only
         ]
         # Resource scope: Only secrets in our project folder.
         # Pattern: ${project}/* (e.g., myapp/db-password)

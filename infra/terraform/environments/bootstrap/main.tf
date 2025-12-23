@@ -24,11 +24,11 @@
 # - The "~> 5.0" means "any 5.x version" but not 6.0 (allows patches, not major changes)
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     aws = {
-      source  = "hashicorp/aws"  # Official AWS provider from HashiCorp
-      version = "~> 5.0"          # Pin to major version 5
+      source  = "hashicorp/aws" # Official AWS provider from HashiCorp
+      version = "~> 5.0"        # Pin to major version 5
     }
   }
 }
@@ -48,7 +48,7 @@ terraform {
 # - "region" determines where resources are created (e.g., us-east-1)
 # - Never hardcode AWS access keys in Terraform files!
 provider "aws" {
-  region  = var.aws_region        # From terraform.tfvars
+  region = var.aws_region # From terraform.tfvars
 }
 
 # ------------------------------------------------------------------------------
@@ -89,14 +89,14 @@ resource "aws_iam_openid_connect_provider" "github" {
   # These are GitHub's official thumbprints (updated by GitHub if certificates change)
   # SECURITY: These prevent man-in-the-middle attacks
   thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1",  # GitHub's primary thumbprint
-    "1c58a3a8518e8759bf075b76b750d4f2df264fcd"   # GitHub's secondary thumbprint
+    "6938fd4d98bab03faadb97b34396831e3780aea1", # GitHub's primary thumbprint
+    "1c58a3a8518e8759bf075b76b750d4f2df264fcd"  # GitHub's secondary thumbprint
   ]
 
   # Tags help identify and organize resources in AWS console
   tags = {
-    project    = var.project      # e.g., "personal-note"
-    managed_by = "terraform"       # Shows this was created by infrastructure-as-code
+    project    = var.project # e.g., "personal-note"
+    managed_by = "terraform" # Shows this was created by infrastructure-as-code
   }
 }
 
@@ -126,17 +126,17 @@ module "iam_roles" {
   # Pass variables to the module
   # The module uses these to customize the roles it creates
   project = var.project
-  
+
   # ARN of the S3 bucket where Terraform stores its state
   # The roles need permission to read/write state files
   # LEARNING NOTE: ${} is string interpolation (inserting variables into strings)
   terraform_state_bucket_arn = "arn:aws:s3:::${var.terraform_state_bucket}"
-  
+
   # ARN of the GitHub OIDC provider we created above
   # Allows the roles to trust GitHub Actions
   # DEPENDENCY: This creates an implicit dependency on the OIDC provider
   github_oidc_provider_arn = aws_iam_openid_connect_provider.github.arn
-  
+
   # GitHub repository in format "owner/repo"
   # Used to restrict which repo can assume these roles
   # SECURITY: Only this specific repo can use these roles
