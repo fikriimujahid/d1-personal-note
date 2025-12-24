@@ -23,7 +23,7 @@ resource "aws_cognito_user_pool" "main" {
   username_attributes = ["email"]
 
   # No attributes are auto-verified here; verification is handled in the app flow.
-  auto_verified_attributes = []
+  auto_verified_attributes = ["email"]
 
   # TERRAFORM CONCEPT: Nested block keeps related settings grouped.
   username_configuration {
@@ -141,8 +141,9 @@ resource "aws_cognito_user_pool_client" "web" {
   # Allowed authentication flows for the web app.
   explicit_auth_flows = [
     "ALLOW_USER_SRP_AUTH",
-    "ALLOW_REFRESH_TOKEN_AUTH"
-    # Optional in dev only: "ALLOW_USER_PASSWORD_AUTH"
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    # Optional in dev only: 
+    "ALLOW_USER_PASSWORD_AUTH"
   ]
 
   # Control which attributes the app can read/write (includes custom flag for notifications).
