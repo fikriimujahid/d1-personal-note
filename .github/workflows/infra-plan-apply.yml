@@ -129,6 +129,18 @@ jobs:
       # Step 1: Checkout the code
       - uses: actions/checkout@v4
       
+      # Step 1.5: Debug - check if secrets exist
+      - name: Debug Secrets
+        run: |
+          echo "AWS_PROD_ROLE_ARN length: ${#AWS_PROD_ROLE_ARN}"
+          if [ -z "$AWS_PROD_ROLE_ARN" ]; then
+            echo "ERROR: AWS_PROD_ROLE_ARN is empty or not set!"
+          else
+            echo "AWS_PROD_ROLE_ARN is set: ${AWS_PROD_ROLE_ARN:0:50}..."
+          fi
+        env:
+          AWS_PROD_ROLE_ARN: ${{ secrets.AWS_PROD_ROLE_ARN }}
+      
       # Step 2: Setup AWS credentials using secure OIDC
       - uses: aws-actions/configure-aws-credentials@v4
         with:
