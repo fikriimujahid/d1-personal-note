@@ -36,7 +36,7 @@ build/
 
 # AWS SAM
 .aws-sam/
-samconfig.*.toml
+api/samconfig.toml
 
 # Environment variables (secrets)
 .env
