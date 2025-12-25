@@ -315,4 +315,46 @@ export class NotesRepository {
     
     // No return - deletion successful (or item didn't exist, which is fine)
   }
+
+  /**
+   * TAGS: List all unique tags for a user by querying the user's partition.
+   *
+   * IMPLEMENTATION DETAILS:
+   * - Uses Query (not Scan) with pk = USER#userId and sk begins_with NOTE# to limit to notes
+   * - Projects only the 'tags' attribute to minimize read cost
+   * - Walks through all pages to aggregate a unique set of tags
+   */
+  async listAllTags(userId: string): Promise<string[]> {
+    const unique = new Set<string>();
+
+    let ExclusiveStartKey: any | undefined = undefined;
+    do {
+      const result = await ddb.send(
+        new QueryCommand({
+          TableName: TABLE,
+          KeyConditionExpression: 'pk = :pk AND begins_with(sk, :sk) ',
+          ExpressionAttributeValues: {
+            ':pk': `USER#${userId}`,
+            ':sk': 'NOTE#',
+          },
+          ProjectionExpression: '#tags',
+          ExpressionAttributeNames: {
+            '#tags': 'tags',
+          },
+          ExclusiveStartKey,
+        })
+      );
+
+      for (const item of result.Items ?? []) {
+        const tags = (item as any).tags as string[] | undefined;
+        if (Array.isArray(tags)) {
+          for (const t of tags) unique.add(t);
+        }
+      }
+
+      ExclusiveStartKey = result.LastEvaluatedKey;
+    } while (ExclusiveStartKey);
+
+    return Array.from(unique).sort((a, b) => a.localeCompare(b));
+  }
 }

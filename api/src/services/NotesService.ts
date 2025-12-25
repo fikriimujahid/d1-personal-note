@@ -109,6 +109,12 @@ export class NotesService {
     logger.info('Note deleted', { noteId });
   }
 
+  async getAllTags(userId: string): Promise<string[]> {
+    logger.info('Listing all tags for user', { userId });
+    const tags = await this.repository.listAllTags(userId);
+    return tags;
+  }
+
   // --- Private helpers -----------------------------------------------------
 
   private validateCreateInput(input: CreateNoteInput): void {

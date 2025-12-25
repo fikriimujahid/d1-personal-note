@@ -91,6 +91,12 @@ async function handleGetNoteById(
   return responseFormatter.success(note, 200);
 }
 
+// HELPER FUNCTION: Handle GET /notes/tags (get unique tags for the user)
+async function handleGetTags(userId: string): Promise<APIGatewayProxyResult> {
+  const tags = await service.getAllTags(userId);
+  return responseFormatter.success({ items: tags }, 200);
+}
+
 // MAIN HANDLER FUNCTION
 // 
 // This is the entry point for the Lambda function.
@@ -145,6 +151,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         event.queryStringParameters?.limit,
         event.queryStringParameters?.nextToken
       );
+    }
+
+    // Route: GET /notes/tags (unique tag list)
+    if (event.path === '/notes/tags' && event.httpMethod === 'GET') {
+      return await handleGetTags(authenticatedUserId);
     }
 
     // Route: GET /notes/:id (get a specific note)

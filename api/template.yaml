@@ -165,7 +165,26 @@ Resources:
             Path: /notes                     # URL path: /notes
             Method: GET                      # HTTP method: GET
             # Result: GET /notes → lists all notes for the authenticated user
-        
+
+        # Event 1b: OPTIONS request for /notes/tags (CORS preflight)
+        TagsOptions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes/tags
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+
+        # Event 1c: List all tags for the authenticated user
+        ListTags:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotesApi
+            Path: /notes/tags
+            Method: GET
+            # Result: GET /notes/tags → returns unique tag strings
+
         # Event 2: Get a specific note by ID
         GetNote:
           Type: Api
