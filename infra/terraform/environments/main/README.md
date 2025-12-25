@@ -1,4 +1,4 @@
-# Terraform Main Environment (Production) README
+# Terraform Main Environment (Production)
 
 ## Overview
 
