@@ -1,0 +1,30 @@
+name: Frontend CI
+on:
+  pull_request:
+    branches: [main]
+    paths: ["frontend/**"]
+  # push:
+  #   branches: ["feature/**"]
+  #   paths: ["frontend/**"]
+jobs:
+  frontend-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Create .env.local
+        run: |
+          cat <<'EOF' > .env.local
+          VITE_COGNITO_USER_POOL_ID=${{ secrets.VITE_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_USER_POOL_CLIENT_ID=${{ secrets.VITE_COGNITO_USER_POOL_CLIENT_ID }}
+          VITE_API_URL=${{ secrets.VITE_API_URL }}
+          EOF
+      - run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - run: npm run lint
+      - run: npm run test:serial
