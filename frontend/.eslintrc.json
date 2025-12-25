@@ -7,5 +7,21 @@
     "react/react-in-jsx-scope": "off",
     "no-unused-vars": "off",
     "no-console": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "rules": {
+        "testing-library/no-node-access": "off",
+        "import/first": "off",
+        "@typescript-eslint/no-unused-vars": "off"
+      }
+    },
+    {
+      "files": ["**/setupTests.ts"],
+      "rules": {
+        "@typescript-eslint/no-useless-constructor": "off"
+      }
+    }
+  ]
 }
