@@ -1,0 +1,172 @@
+# ==============================================================================
+# WORKFLOW: API Deploy to AWS
+# 
+# PURPOSE: Automatically builds and deploys the API to AWS whenever changes 
+#          are pushed to the main branch in the api/ folder.
+#
+# TRIGGERS: 
+#   - Push to main branch
+#   - Files changed in api/** path
+# ==============================================================================
+
+name: API Deploy
+
+# WORKFLOW TRIGGERS (when should this automation run?)
+on:
+  push:
+    branches: [main]                  # Only run on main branch (not staging/dev)
+    paths:                            # Only run when api folder files change
+      - api/**
+
+# ENVIRONMENT VARIABLES (shared across all jobs)
+# These values come from GitHub Secrets configured in repository settings
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}          # AWS region for deployment
+  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}      # Project name for stack naming
+
+# CONCURRENCY SETTINGS (prevent duplicate deployments)
+# Ensures only one deployment runs at a time for this branch
+# If a new push happens while deploying, cancel the old deployment
+concurrency:
+  group: api-${{ github.ref_name }}   # Group by branch name (main, staging, etc)
+  cancel-in-progress: true             # Cancel old runs when new one starts
+
+# JOBS (the actual work to perform)
+jobs:
+  # JOB: "deploy" - handles building and deploying the API
+  deploy:
+    runs-on: ubuntu-latest             # Run on Ubuntu server (Linux)
+    
+    # ENVIRONMENT SELECTION (which AWS account to use)
+    # Maps branch names to AWS environments (main→prod, staging→staging, else→dev)
+    environment: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+    
+    # PERMISSIONS (what this workflow is allowed to do)
+    permissions:
+      id-token: write                  # Required for AWS credential assumption (OpenID Connect)
+      contents: read                   # Read access to repository code
+    
+    # DEFAULT SETTINGS (apply to all steps unless overridden)
+    defaults:
+      run:
+        working-directory: api         # All commands run inside the 'api' folder
+    
+    # STEPS (sequential actions performed in order)
+    steps:
+      # STEP 1: Clone the repository code
+      # Brings the latest code from GitHub into the runner for building
+      - uses: actions/checkout@v4
+      
+      # STEP 2: Install Node.js runtime
+      # Required to run npm commands and build JavaScript/TypeScript code
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*          # Use latest Long-Term-Support Node.js version
+      
+      # STEP 3: Configure AWS credentials for deployment
+      # Uses OpenID Connect (OIDC) for secure, token-based authentication
+      # No permanent access keys needed - more secure approach
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ github.ref_name == 'main' && secrets.AWS_PROD_ROLE_ARN || (github.ref_name == 'staging' && secrets.AWS_STAGING_ROLE_ARN || secrets.AWS_DEV_ROLE_ARN) }}
+      
+      # STEP 4: Install AWS SAM CLI
+      # SAM = Serverless Application Model (tool for deploying to AWS Lambda)
+      - uses: aws-actions/setup-sam@v2
+      
+      # STEP 5: Install Node.js dependencies
+      # Uses npm ci (clean install) if lock file exists, otherwise npm install
+      # Ensures consistent, reproducible builds
+      - run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      
+      # STEP 6: Build the TypeScript/JavaScript code
+      # Compiles TypeScript to JavaScript for deployment
+      - run: npm run build
+      
+      # STEP 7: Build the SAM application package
+      # Prepares the Lambda functions and resources for deployment
+      - name: SAM build
+        run: sam build
+      
+      # STEP 8: Check if CloudFormation stack already exists
+      # This determines whether we're doing a first-time deploy (new stack) 
+      # or updating an existing stack
+      # 
+      # Output variable 'exists' is used in next steps to decide behavior:
+      #   - true = stack exists, reuse its settings
+      #   - false = new stack, need to provide all parameters
+      - name: Check if stack exists
+        id: stack-check                # Store output in 'steps.stack-check.outputs.exists'
+        env:
+          # Determine environment name from branch (main→prod, staging→staging, else→dev)
+          ENV_NAME: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+        run: |
+          # Create stack name from project and environment
+          STACK_NAME="${PROJECT_NAME}-stack-${ENV_NAME}"
+          
+          # Check if this stack exists in CloudFormation
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            # Stack exists - we can do an update
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Stack $STACK_NAME exists; will reuse parameters"
+          else
+            # Stack doesn't exist - this is a first-time deployment
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Stack $STACK_NAME not found; will provide parameter overrides"
+          fi
+      
+      # STEP 9: Prepare deployment parameters for NEW stacks only
+      # Only runs on first deployment (when stack doesn't exist yet)
+      # Validates that required secrets are configured in GitHub
+      #
+      # These parameters tell AWS:
+      #   - Which environment (dev/staging/prod)
+      #   - Which DynamoDB table to use for data storage
+      #   - Which Cognito user pool to use for authentication
+      - name: Build SAM parameter overrides (first deploy only)
+        if: steps.stack-check.outputs.exists == 'false'  # Only if new stack
+        env:
+          ENV_NAME: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+          TABLE_NAME: ${{ secrets.TABLE_NAME }}           # DynamoDB table name from secrets
+          USER_POOL_ID: ${{ secrets.USER_POOL_ID }}       # Cognito pool ID from secrets
+        run: |
+          # Validate that required secrets are set
+          # If either is empty, the deployment will fail with helpful error message
+          if [[ -z "$TABLE_NAME" || -z "$USER_POOL_ID" ]]; then
+            echo "❌ Error: TABLE_NAME or USER_POOL_ID secrets are not set in the '${ENV_NAME}' environment"
+            echo "Please add these secrets to the GitHub Environment: Settings → Environments → ${ENV_NAME} → Secrets"
+            exit 1
+          fi
+          
+          # Confirm we found the secrets
+          echo "✅ Resolved secrets: TABLE_NAME=${TABLE_NAME}, USER_POOL_ID=${USER_POOL_ID}"
+          
+          # Build the parameter string for SAM deployment
+          # This will be passed to the SAM deploy command in the next step
+          echo "SAM_PARAMETER_OVERRIDES=--parameter-overrides Environment=${ENV_NAME} DynamoDBTableName=${TABLE_NAME} UserPoolId=${USER_POOL_ID}" >> $GITHUB_ENV
+      
+      # STEP 10: Deploy to AWS using SAM
+      # This is the final step that actually pushes the Lambda functions to AWS
+      #
+      # Parameters explained:
+      #   --stack-name: CloudFormation stack identifier
+      #   --s3-prefix: Folder path in S3 for storing deployment artifacts
+      #   --resolve-s3: Automatically create and use S3 bucket for artifacts
+      #   --capabilities CAPABILITY_IAM: Allow creation of IAM roles
+      #   --no-confirm-changeset: Skip approval prompt (useful for automation)
+      #   --no-fail-on-empty-changeset: Don't fail if nothing changed
+      #   ${SAM_PARAMETER_OVERRIDES}: The parameters prepared in previous step
+      - name: SAM deploy
+        env:
+          ENV_NAME: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+        run: |
+          sam deploy \
+            --stack-name "${PROJECT_NAME}-stack-${ENV_NAME}" \
+            --s3-prefix "${PROJECT_NAME}-stack-${ENV_NAME}" \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            ${SAM_PARAMETER_OVERRIDES}
