@@ -124,7 +124,7 @@ jobs:
     if: github.event_name == 'push'           # Only run on Push events
     runs-on: ubuntu-latest
     # environment: Requires manual approval gate in GitHub before applying
-    environment: ${{ github.base_ref == 'main' && 'prod' || (github.base_ref == 'staging' && 'staging') || 'dev' }}
+    environment: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging') || 'dev' }}
     steps:
       # Step 1: Checkout the code
       - uses: actions/checkout@v4
