@@ -1,34 +1,55 @@
+# GitHub Actions Workflow: Frontend Deployment
+# This workflow automatically builds and deploys the frontend application to AWS S3 whenever
+# changes are pushed to the frontend folder on the main branch.
+
 name: Frontend Deploy
 
+# TRIGGER CONDITIONS: When does this workflow run?
 on:
   push:
-    branches: [main]
-    paths:
+    branches: [main]              # Only run on main branch
+    paths:                        # Only run if these paths are modified
       - frontend/**
 
+# ENVIRONMENT VARIABLES: Shared values available to all steps
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}           # AWS region (e.g., us-east-1)
+  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}       # Project name (used in S3 bucket names)
 
+# CONCURRENCY: Prevents multiple deployments from running simultaneously
+# If a new deployment starts, it cancels any previously running deployments
 concurrency:
-  group: frontend-${{ github.ref_name }}
-  cancel-in-progress: true
+  group: frontend-${{ github.ref_name }}         # Group by branch name
+  cancel-in-progress: true                       # Cancel old jobs in this group
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest                        # Run on Ubuntu (GitHub-hosted runner)
+    
+    # ENVIRONMENT SELECTION: Choose environment based on branch
+    # main branch → prod | staging branch → staging | other branches → dev
     environment: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+    
+    # PERMISSIONS: Allow this workflow to assume AWS roles (OIDC authentication)
     permissions:
-      id-token: write
-      contents: read
+      id-token: write                             # Allow JWT token generation for AWS
+      contents: read                              # Allow reading repository content
+    
+    # DEFAULTS: Apply to all steps in this job unless overridden
     defaults:
       run:
-        working-directory: frontend
+        working-directory: frontend               # All commands run in /frontend directory
     steps:
+      # STEP 1: Clone the repository code onto the runner
       - uses: actions/checkout@v4
+      
+      # STEP 2: Install Node.js (the runtime that powers frontend tools)
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: lts/*                    # Use latest Long-Term Support version
+      
+      # STEP 3: Create .env.local file with secrets from GitHub
+      # These secrets are sensitive values stored in GitHub (not committed to git)
       - name: Create .env.local
         run: |
           cat <<'EOF' > .env.local
@@ -36,24 +57,49 @@ jobs:
           VITE_COGNITO_USER_POOL_CLIENT_ID=${{ secrets.VITE_COGNITO_USER_POOL_CLIENT_ID }}
           VITE_API_URL=${{ secrets.VITE_API_URL }}
           EOF
+      
+      # STEP 4: Authenticate with AWS using OIDC (OpenID Connect)
+      # This is more secure than storing AWS keys in secrets
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
+          # Select AWS role based on environment (branch)
+          # main → prod role | staging → staging role | others → dev role
           role-to-assume: ${{ github.ref_name == 'main' && secrets.AWS_PROD_ROLE_ARN || (github.ref_name == 'staging' && secrets.AWS_STAGING_ROLE_ARN || secrets.AWS_DEV_ROLE_ARN) }}
+      
+      # STEP 5: Install project dependencies
+      # Uses npm ci (clean install) if lock file exists (recommended for CI)
+      # Falls back to npm install if no lock file
       - name: Install deps
         run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      
+      # STEP 6: Build the frontend (creates optimized static files)
+      # Outputs to 'out' directory as configured in vite.config.ts → build.outDir
       - name: Build static site
         run: npm run build
+      
+      # STEP 7: Upload built files to AWS S3 bucket
+      # The bucket name is: {PROJECT_NAME}-{ENVIRONMENT}-website
+      # Example: my-notes-prod-website
       - name: Sync to S3
         env:
+          # Convert branch name to environment name for S3 bucket
           ENV_NAME: ${{ github.ref_name == 'main' && 'main' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
         run: |
+          # --delete removes files from S3 that are no longer in 'out' directory
           aws s3 sync out s3://${{ env.PROJECT_NAME }}-${ENV_NAME}-website --delete
+      
+      # STEP 8: Invalidate CloudFront cache (optional, only if distribution ID is set)
+      # CloudFront caches files globally. This tells it to fetch fresh copies.
       - name: Optional CloudFront invalidation
         env:
+          # Convert branch to environment for CloudFront distribution ID
           ENV_NAME: ${{ github.ref_name == 'main' && 'main' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+          # Select CloudFront distribution ID based on environment
           CF_DIST_ID: ${{ github.ref_name == 'main' && secrets.CF_DIST_ID_PROD || (github.ref_name == 'staging' && secrets.CF_DIST_ID_STAGING || secrets.CF_DIST_ID_DEV) }}
+        # Only run this step if CF_DIST_ID is configured (not empty)
         if: env.CF_DIST_ID != ''
         run: |
+          # "/*" means invalidate all paths (entire cache)
           aws cloudfront create-invalidation --distribution-id "$CF_DIST_ID" --paths "/*"

@@ -16,4 +16,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    // Output directory for built files (used by CI/CD deployment)
+    outDir: 'out',
+  },
 })
