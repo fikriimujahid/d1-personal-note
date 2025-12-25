@@ -40,10 +40,11 @@ locals {
     #"repo:${var.github_repo}:ref:refs/heads/dev",      # Dev branch pushes
     #"repo:${var.github_repo}:ref:refs/heads/staging",  # Staging branch pushes
     "repo:${var.github_repo}:ref:refs/heads/main",     # Main branch pushes
-    "repo:${var.github_repo}:pull_request",            # All pull requests
+    "repo:${var.github_repo}:pull_request/*",          # All pull requests (requires wildcard)
     #"repo:${var.github_repo}:environment:dev",         # Dev environment deploys
     #"repo:${var.github_repo}:environment:staging",     # Staging environment deploys
-    "repo:${var.github_repo}:environment:main"         # Prod environment deploys
+    "repo:${var.github_repo}:environment:prod",        # Prod environment deploys (matches GitHub "prod" environment)
+    "repo:${var.github_repo}:environment:main"         # Main environment deploys (alternative naming)
   ]
 }
 
