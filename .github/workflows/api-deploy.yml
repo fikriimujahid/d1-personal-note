@@ -100,8 +100,8 @@ jobs:
       - name: Check if stack exists
         id: stack-check                # Store output in 'steps.stack-check.outputs.exists'
         env:
-          # Determine environment name from branch (main→prod, staging→staging, else→dev)
-          ENV_NAME: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+          # Determine environment name from branch (main→main, staging→staging, else→dev)
+          ENV_NAME: ${{ github.ref_name == 'main' && 'main' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
         run: |
           # Create stack name from project and environment
           STACK_NAME="${PROJECT_NAME}-stack-${ENV_NAME}"
@@ -166,7 +166,7 @@ jobs:
       #   ${SAM_PARAMETER_OVERRIDES}: The parameters prepared in previous step
       - name: SAM deploy
         env:
-          ENV_NAME: ${{ github.ref_name == 'main' && 'prod' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
+          ENV_NAME: ${{ github.ref_name == 'main' && 'main' || (github.ref_name == 'staging' && 'staging' || 'dev') }}
           AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}  # Ensure default region is set
         run: |
           sam deploy \
