@@ -27,4 +27,4 @@ jobs:
       - run: |
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
       - run: npm run lint
-      - run: npm run test:serial
+      - run: npm run test
