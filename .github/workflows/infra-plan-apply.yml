@@ -40,6 +40,8 @@ jobs:
   plan:
     if: github.event_name == 'pull_request'  # Only run on Pull Requests
     runs-on: ubuntu-latest                    # Use Ubuntu runner (GitHub-hosted)
+    # environment: Determines which secrets are available (uses base_ref for PR context)
+    environment: ${{ github.base_ref == 'main' && 'prod' || (github.base_ref == 'staging' && 'staging') || 'dev' }}
     steps:
       # Step 1: Checkout the code (download repo contents to the runner)
       - uses: actions/checkout@v4
