@@ -16,14 +16,14 @@ Thumbs.db
 *.tfstate.*
 .terraform.lock.hcl
 
-# Sensitive or generated configs
-*.tfvars
+# Sensitive or generated configs (only ignore backend config and plans)
+# NOTE: terraform.tfvars IS committed - it contains non-sensitive config
 *.tfvars.json
 *.tfplan
 crash.log
 override.tf
 override.tf.json
-infra/terraform/environments/main/backend.hcl
+infra/terraform/environments/*/backend.hcl
 
 # Node.js
 node_modules/

@@ -11,7 +11,7 @@
     "sam:local": "npm run build && sam local start-api --env-vars env.json --port 3001",
     "sam:deployfirst": "npm run sam:build && sam deploy --parameter-overrides \"DynamoDBTableName=d1-personal-note-main-notes UserPoolId=ap-southeast-1_lNExKXqTR\" --guided --profile terraform-prod",
     "sam:deploy": "npm run sam:build && sam deploy --profile terraform-prod",
-    "sam:delete": "sam delete --stack-name p1-serverless-web-app-stack-prod --profile terraform-admin",
+    "sam:delete": "sam delete --stack-name d1-personal-note-stack-main --profile terraform-admin",
     "clean": "rm -rf dist"
   },
   "keywords": [],
