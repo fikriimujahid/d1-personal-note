@@ -164,7 +164,6 @@ jobs:
           AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}  # Ensure default region is set
         run: |
           sam deploy \
-            --profile default \
             --stack-name "${PROJECT_NAME}-stack-${ENV_NAME}" \
             --s3-prefix "${PROJECT_NAME}-stack-${ENV_NAME}" \
             --resolve-s3 \
