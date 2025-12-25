@@ -43,7 +43,12 @@ jobs:
     steps:
       # Step 1: Checkout the code (download repo contents to the runner)
       - uses: actions/checkout@v4
-      
+      - name: Debug GitHub Context
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Actor: ${{ github.actor }}"
+
       # Step 2: Setup AWS credentials using secure OIDC (no API keys stored)
       # This uses the branch being merged into (github.base_ref) to pick the environment
       - uses: aws-actions/configure-aws-credentials@v4
