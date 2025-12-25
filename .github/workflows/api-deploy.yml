@@ -147,7 +147,13 @@ jobs:
           # This will be passed to the SAM deploy command in the next step
           echo "SAM_PARAMETER_OVERRIDES=--parameter-overrides Environment=${ENV_NAME} DynamoDBTableName=${TABLE_NAME} UserPoolId=${USER_POOL_ID}" >> $GITHUB_ENV
       
-      # STEP 10: Deploy to AWS using SAM
+      # STEP 10: Clear stale AWS configuration to prevent profile lookup errors
+      # Removes any local AWS config that might reference non-existent profiles
+      # The OIDC credentials from Step 3 are in environment variables and will be used instead
+      - name: Clear AWS config files
+        run: rm -rf ~/.aws/config ~/.aws/credentials || true
+      
+      # STEP 11: Deploy to AWS using SAM
       # This is the final step that actually pushes the Lambda functions to AWS
       #
       # Parameters explained:
