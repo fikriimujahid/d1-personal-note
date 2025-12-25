@@ -1,0 +1,220 @@
+# GitHub Actions Workflow: Infrastructure Automation
+# Purpose: Automatically validate (plan) and deploy (apply) infrastructure changes
+# triggered by changes in the infra/ directory
+#
+# Triggers:
+#   - Pull Requests to main: Runs "plan" to show what WILL change (read-only preview)
+#   - Push to main: Runs "apply" to actually deploy the approved changes
+#
+# Security: Uses AWS OpenID Connect (OIDC) for keyless authentication
+
+name: Infra Plan & Apply
+
+# TRIGGERS: When does this workflow run?
+on:
+  pull_request:
+    branches: [main]
+    paths: ["infra/**"]  # Only run if infra/ folder changes
+  push:
+    branches: [main]
+    paths: ["infra/**"]
+
+# ENVIRONMENT VARIABLES: Shared across all jobs
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}           # AWS region from secrets
+  PROJECT_NAME: ${{ secrets.PROJECT_NAME }}       # Project name from secrets
+  TF_IN_AUTOMATION: true                          # Tell Terraform we're in CI/CD
+
+# PERMISSIONS: What can this workflow access?
+# id-token: Allows AWS OIDC authentication (secure, no API keys needed)
+# contents: Allows reading repository code
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # STEP 1: Determine which AWS environment to use
+  # This helper job creates variables used by other jobs
+  # (Alternative: Could use GitHub environment variables directly)
+  
+  # JOB 1: PLAN - Read-only preview of infrastructure changes
+  # When: On every Pull Request to main
+  # What it does: Shows what Terraform WILL change (doesn't apply yet)
+  # Why: Code reviewers can see the impact before merging
+  plan:
+    if: github.event_name == 'pull_request'  # Only run on Pull Requests
+    runs-on: ubuntu-latest                    # Use Ubuntu runner (GitHub-hosted)
+    steps:
+      # Step 1: Checkout the code (download repo contents to the runner)
+      - uses: actions/checkout@v4
+      
+      # Step 2: Setup AWS credentials using secure OIDC (no API keys stored)
+      # This uses the branch being merged into (github.base_ref) to pick the environment
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # ENVIRONMENT SELECTION LOGIC:
+          # If merging into 'main' branch → use Production AWS account
+          # Else if merging into 'staging' branch → use Staging AWS account
+          # Else → use Development AWS account (default)
+          role-to-assume: ${{ 
+            github.base_ref == 'main' && secrets.AWS_PROD_ROLE_ARN || 
+            (github.base_ref == 'staging' && secrets.AWS_STAGING_ROLE_ARN) || 
+            secrets.AWS_DEV_ROLE_ARN 
+          }}
+          aws-region: ${{ env.AWS_REGION }}
+          audience: sts.amazonaws.com          # Who is allowed to use this token
+          role-session-name: github-actions-plan
+      
+      # Step 3: Determine environment and secrets
+      - name: Determine Environment
+        id: env
+        run: |
+          # SELECT THE RIGHT ENVIRONMENT
+          # Same logic: main → main/, staging → staging/, else → dev/
+          if [ "${{ github.base_ref }}" == "main" ]; then
+            echo "ENVIRONMENT=main" >> $GITHUB_OUTPUT
+          elif [ "${{ github.base_ref }}" == "staging" ]; then
+            echo "ENVIRONMENT=staging" >> $GITHUB_OUTPUT
+          else
+            echo "ENVIRONMENT=dev" >> $GITHUB_OUTPUT
+          fi
+      
+      # Step 4: Create backend.hcl from GitHub secrets
+      - name: Create backend.hcl
+        run: |
+          mkdir -p infra/terraform/environments/${{ steps.env.outputs.ENVIRONMENT }}
+          cat > infra/terraform/environments/${{ steps.env.outputs.ENVIRONMENT }}/backend.hcl <<EOF
+          # Terraform backend configuration
+          # Generated from GitHub secrets (never committed to repo)
+          bucket         = "${{ secrets.TF_BACKEND_BUCKET }}"
+          key            = "${{ secrets.PROJECT_NAME }}/${{ steps.env.outputs.ENVIRONMENT }}/terraform.tfstate"
+          region         = "${{ env.AWS_REGION }}"
+          encrypt        = true
+          use_lockfile   = true
+          EOF
+      
+      # Step 5: Install Terraform
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.1
+      
+      # Step 7: Run Terraform plan (preview changes)
+      - name: Terraform Plan
+        run: |
+          # NAVIGATE TO THE ENVIRONMENT FOLDER
+          cd infra/terraform/environments/${{ steps.env.outputs.ENVIRONMENT }}
+          
+          # INITIALIZE TERRAFORM
+          # Backend config tells Terraform where to store state files (S3, etc)
+          # Using the dynamically generated backend.hcl from secrets
+          terraform init -backend-config=backend.hcl
+          
+          # RUN TERRAFORM PLAN
+          # Using the dynamically generated terraform.tfvars from secrets
+          terraform plan -var-file=terraform.tfvars -out=tfplan
+          
+          # EXPORT THE PLAN AS JSON
+          # This lets us see the detailed changes in GitHub UI
+          terraform show -json tfplan > tfplan.json
+  
+  # JOB 2: APPLY - Actually deploy infrastructure changes
+  # When: On every Push to main (after PR is merged)
+  # What it does: Applies the Terraform plan (makes actual AWS changes)
+  # Why: Automatically deploy approved infrastructure changes
+  apply:
+    if: github.event_name == 'push'           # Only run on Push events
+    runs-on: ubuntu-latest
+    # environment: Requires manual approval gate in GitHub before applying
+    environment: ${{ 
+      github.ref_name == 'main' && 'main' || 
+      (github.ref_name == 'staging' && 'staging') || 
+      'dev' 
+    }}
+    steps:
+      # Step 1: Checkout the code
+      - uses: actions/checkout@v4
+      
+      # Step 2: Debug OIDC claims (optional, helps troubleshoot auth issues)
+      # This logs what the OIDC token says about this workflow run
+      # - name: Debug OIDC token claims
+      #   uses: actions/github-script@v7
+      #   with:
+      #     script: |
+      #       # REQUEST AN OIDC TOKEN FROM GitHub
+      #       const token = await core.getIDToken('sts.amazonaws.com');
+            
+      #       # DECODE THE JWT TOKEN (without verification)
+      #       # JWT format: header.claims.signature (separated by dots)
+      #       const claims = JSON.parse(
+      #         Buffer.from(token.split('.')[1], 'base64').toString()
+      #       );
+            
+      #       # LOG THE CLAIMS (useful for debugging)
+      #       core.info(`OIDC aud: ${claims.aud}`);      # Who can use this token
+      #       core.info(`OIDC sub: ${claims.sub}`);      # Subject (usually repo info)
+      #       core.info(`OIDC ref: ${claims.ref}`);      # Git reference (branch)
+      #       core.info(`OIDC repository: ${claims.repository}`);  # Repo name
+      
+      # Step 3: Setup AWS credentials using secure OIDC
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # ENVIRONMENT SELECTION LOGIC:
+          # If on 'main' branch → use Production AWS account
+          # Else if on 'staging' branch → use Staging AWS account
+          # Else → use Development AWS account (default)
+          role-to-assume: ${{ 
+            github.ref_name == 'main' && secrets.AWS_PROD_ROLE_ARN || 
+            (github.ref_name == 'staging' && secrets.AWS_STAGING_ROLE_ARN) || 
+            secrets.AWS_DEV_ROLE_ARN 
+          }}
+          aws-region: ${{ env.AWS_REGION }}
+          audience: sts.amazonaws.com
+          role-session-name: github-actions-apply
+      
+      # Step 5: Determine environment and secrets
+      - name: Determine Environment
+        id: env
+        run: |
+          # SELECT THE RIGHT ENVIRONMENT
+          # Same logic: main → main/, staging → staging/, else → dev/
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            echo "ENVIRONMENT=main" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref_name }}" == "staging" ]; then
+            echo "ENVIRONMENT=staging" >> $GITHUB_OUTPUT
+          else
+            echo "ENVIRONMENT=dev" >> $GITHUB_OUTPUT
+          fi
+      
+      # Step 6: Create backend.hcl from GitHub secrets
+      - name: Create backend.hcl
+        run: |
+          mkdir -p infra/terraform/environments/${{ steps.env.outputs.ENVIRONMENT }}
+          cat > infra/terraform/environments/${{ steps.env.outputs.ENVIRONMENT }}/backend.hcl <<EOF
+          # Terraform backend configuration
+          # Generated from GitHub secrets (never committed to repo)
+          bucket         = "${{ secrets.TF_BACKEND_BUCKET }}"
+          key            = "${{ secrets.PROJECT_NAME }}/${{ steps.env.outputs.ENVIRONMENT }}/terraform.tfstate"
+          region         = "${{ env.AWS_REGION }}"
+          encrypt        = true
+          use_lockfile   = true
+          EOF
+      
+      # Step 8: Install Terraform
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.1
+      
+      # Step 9: Run Terraform apply (actually deploy changes)
+      - name: Terraform Apply
+        run: |
+          # NAVIGATE TO THE ENVIRONMENT FOLDER
+          cd infra/terraform/environments/${{ steps.env.outputs.ENVIRONMENT }}
+          
+          # INITIALIZE TERRAFORM
+          # Using the dynamically generated backend.hcl from secrets
+          terraform init -backend-config=backend.hcl
+          
+          # RUN TERRAFORM APPLY
+          # -auto-approve: Don't ask for confirmation (we trust the PR review)
+          # Using the dynamically generated terraform.tfvars from secrets
+          terraform apply -auto-approve -var-file=terraform.tfvars
