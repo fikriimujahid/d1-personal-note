@@ -48,3 +48,7 @@ frontend/.env.development
 coverage/
 .coverage/
 *.lcov
+
+# Dependency Check  
+security/dependency-check-data/*
+security/result/*
