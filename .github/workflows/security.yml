@@ -1,0 +1,108 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly run
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # 1. Secrets Detection
+  secrets:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 2. Static Application Security Testing (SAST)
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Semgrep
+        run: semgrep scan --config p/ci --config p/security-audit --sarif --output semgrep.sarif
+        
+      - name: Upload Semgrep Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  # 3. Infrastructure as Code (IaC) Scanning
+  iac:
+    name: IaC Scan (Checkov & Tfsec)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Checkov (Terraform)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infra/terraform
+          framework: terraform
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+          quiet: true
+      
+      # Upload Checkov Results
+      - name: Upload Checkov SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: success() || failure()
+        with:
+          sarif_file: results.sarif
+          category: checkov
+
+      - name: Run Tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: infra/terraform
+
+  # 4. Dependency Scanning (SCA) - Often slower, so maybe run on Schedule or PR to main
+  dependency-check:
+    name: OWL Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'd1-personal-note'
+          path: '.'
+          format: 'SARIF'
+          out: 'reports'
+          args: >
+            --disableAssembly
+            --exclude "**/node_modules/**"
+            --exclude "**/.git/**"
+            --exclude "**/dist/**"
+      
+      - name: Upload Dependency Check Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: success() || failure()
+        with:
+          sarif_file: reports/dependency-check-report.sarif
+          category: dependency-check
