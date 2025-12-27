@@ -112,7 +112,9 @@ locals {
     "lambda:GetPolicy",
     "lambda:TagResource",
     "lambda:UntagResource",
-    "lambda:ListTags"
+    "lambda:ListTags",
+    "lambda:PutFunctionConcurrency",
+    "lambda:DeleteFunctionConcurrency"
   ]
 
   apigateway_actions = [
@@ -173,6 +175,18 @@ locals {
     "cognito-idp:UntagResource",
     "cognito-idp:SetUserPoolMfaConfig",
     "cognito-idp:GetUserPoolMfaConfig"
+  ]
+
+  # SQS actions (for Dead Letter Queues)
+  sqs_actions = [
+    "sqs:CreateQueue",
+    "sqs:DeleteQueue",
+    "sqs:GetQueueAttributes",
+    "sqs:SetQueueAttributes",
+    "sqs:ListQueues",
+    "sqs:TagQueue",
+    "sqs:UntagQueue",
+    "sqs:ListQueueTags"
   ]
 
   # CloudFront actions (used by both dev/prod policies)
@@ -311,6 +325,7 @@ locals {
     logs_groups       = local.logs_group_arns
     iam_all           = ["*"]
     cognito_userpools = [local.cognito_userpool_arns]
+    sqs_queues        = ["arn:aws:sqs:*:${local.account_id}:${var.project}*"]
   }
 
   prod_resources = {
@@ -336,6 +351,7 @@ locals {
     logs_groups       = local.logs_group_arns
     iam_all           = ["*"]
     cognito_userpools = [local.cognito_userpool_arns]
+    sqs_queues        = ["arn:aws:sqs:*:${local.account_id}:${var.project}*"]
   }
 }
 
@@ -391,9 +407,9 @@ locals {
 # WHAT: Permissions policy for TerraformDevRole
 # Maintenance Note: Preserved as-is (JSON) to avoid behavioral changes
 # ==============================================================================
-data "aws_iam_policy_document" "terraform_dev_policy_doc" {
+data "aws_iam_policy_document" "terraform_dev_policy_services_doc" {
   # checkov:skip=CKV_AWS_109:Ignore it for now
-  # CloudFront management (same actions as prod, dev-scoped resources)
+  # CloudFront management
   statement {
     sid       = "CloudFrontManagement"
     effect    = "Allow"
@@ -401,13 +417,64 @@ data "aws_iam_policy_document" "terraform_dev_policy_doc" {
     resources = local.dev_resources.cloudfront_distributions
   }
 
-  # S3 for Terraform state (objects)
+  # S3 for Terraform state (objects) - Needed in both to read state
   statement {
     sid       = "S3StateObjects"
     effect    = "Allow"
     actions   = local.s3_state_object_actions
     resources = local.dev_resources.s3_state_objects
   }
+
+  # S3 bucket management
+  statement {
+    sid       = "S3BucketManagement"
+    effect    = "Allow"
+    actions   = local.s3_bucket_actions
+    resources = local.dev_resources.s3_buckets
+  }
+
+  # S3 object operations
+  statement {
+    sid       = "S3ObjectOperations"
+    effect    = "Allow"
+    actions   = local.s3_object_actions
+    resources = local.dev_resources.s3_objects
+  }
+
+  # DynamoDB
+  statement {
+    sid       = "DynamoDBManagement"
+    effect    = "Allow"
+    actions   = local.dynamodb_actions
+    resources = local.dev_resources.dynamodb_tables
+  }
+
+  # Route53 & ACM
+  statement {
+    sid       = "Route53AndACM"
+    effect    = "Allow"
+    actions   = local.route53_acm_actions
+    resources = local.dev_resources.route53_acm
+  }
+
+  # Cognito
+  statement {
+    sid       = "CognitoUserPools"
+    effect    = "Allow"
+    actions   = local.cognito_actions
+    resources = local.dev_resources.cognito_userpools
+  }
+
+  # SQS
+  statement {
+    sid       = "SQSManagement"
+    effect    = "Allow"
+    actions   = local.sqs_actions
+    resources = local.dev_resources.sqs_queues
+  }
+}
+
+data "aws_iam_policy_document" "terraform_dev_policy_infra_doc" {
 
   # S3 for Terraform state (bucket-level)
   statement {
@@ -417,39 +484,7 @@ data "aws_iam_policy_document" "terraform_dev_policy_doc" {
     resources = local.dev_resources.s3_state_bucket
   }
 
-  # S3 bucket management for application buckets
-  statement {
-    sid       = "S3BucketManagement"
-    effect    = "Allow"
-    actions   = local.s3_bucket_actions
-    resources = local.dev_resources.s3_buckets
-  }
-
-  # S3 object operations for application buckets
-  statement {
-    sid       = "S3ObjectOperations"
-    effect    = "Allow"
-    actions   = local.s3_object_actions
-    resources = local.dev_resources.s3_objects
-  }
-
-  # DynamoDB table management for application data
-  statement {
-    sid       = "DynamoDBManagement"
-    effect    = "Allow"
-    actions   = local.dynamodb_actions
-    resources = local.dev_resources.dynamodb_tables
-  }
-
-  # Route53 & ACM (DNS and certificates)
-  statement {
-    sid       = "Route53AndACM"
-    effect    = "Allow"
-    actions   = local.route53_acm_actions
-    resources = local.dev_resources.route53_acm
-  }
-
-  # CloudFormation (SAM deployments)
+  # CloudFormation
   statement {
     sid       = "CloudFormationForSAM"
     effect    = "Allow"
@@ -457,7 +492,7 @@ data "aws_iam_policy_document" "terraform_dev_policy_doc" {
     resources = local.dev_resources.cf_stacks
   }
 
-  # Lambda (SAM deployments)
+  # Lambda
   statement {
     sid       = "LambdaForSAM"
     effect    = "Allow"
@@ -465,7 +500,7 @@ data "aws_iam_policy_document" "terraform_dev_policy_doc" {
     resources = local.dev_resources.lambda_functions
   }
 
-  # API Gateway (SAM deployments)
+  # API Gateway
   statement {
     sid       = "ApiGatewayForSAM"
     effect    = "Allow"
@@ -473,7 +508,7 @@ data "aws_iam_policy_document" "terraform_dev_policy_doc" {
     resources = local.dev_resources.apigw_restapis
   }
 
-  # CloudWatch Logs (Lambda logging)
+  # CloudWatch Logs
   statement {
     sid       = "CloudWatchLogs"
     effect    = "Allow"
@@ -481,22 +516,13 @@ data "aws_iam_policy_document" "terraform_dev_policy_doc" {
     resources = local.dev_resources.logs_groups
   }
 
-  # IAM (read and inline policy ops required by SAM/CFN)
+  # IAM
   statement {
     sid       = "IAMOperations"
     effect    = "Allow"
     actions   = local.iam_actions
     resources = local.dev_resources.iam_all
   }
-
-  # Cognito (user pools)
-  statement {
-    sid       = "CognitoUserPools"
-    effect    = "Allow"
-    actions   = local.cognito_actions
-    resources = local.dev_resources.cognito_userpools
-  }
-
   # Explicit deny: No access to production-tagged resources
   statement {
     sid       = "DenyProdTaggedResources"
@@ -519,9 +545,16 @@ data "aws_iam_policy_document" "terraform_dev_policy_doc" {
   }
 }
 
-resource "aws_iam_policy" "terraform_dev_policy" {
-  name   = "TerraformDevPolicy"
-  policy = data.aws_iam_policy_document.terraform_dev_policy_doc.json
+resource "aws_iam_policy" "terraform_dev_policy_infra" {
+  name   = "TerraformDevPolicyInfra"
+  policy = data.aws_iam_policy_document.terraform_dev_policy_infra_doc.json
+
+  tags = local.tags
+}
+
+resource "aws_iam_policy" "terraform_dev_policy_services" {
+  name   = "TerraformDevPolicyServices"
+  policy = data.aws_iam_policy_document.terraform_dev_policy_services_doc.json
 
   tags = local.tags
 }
@@ -608,9 +641,10 @@ resource "aws_iam_role" "terraform_prod" {
 # WHAT: Permissions policy for TerraformProdRole (CI/CD only)
 # PERMISSIONS: Same as before, structured via policy document data source
 # ==============================================================================
-data "aws_iam_policy_document" "terraform_prod_policy_doc" {
+data "aws_iam_policy_document" "terraform_prod_policy_services_doc" {
   # checkov:skip=CKV_AWS_356:Ignore it for now
   # checkov:skip=CKV_AWS_109:Ignore it for now
+
   # CloudFront management
   statement {
     sid       = "CloudFrontManagement"
@@ -627,6 +661,56 @@ data "aws_iam_policy_document" "terraform_prod_policy_doc" {
     resources = local.prod_resources.s3_state_objects
   }
 
+  # S3 bucket management
+  statement {
+    sid       = "S3BucketManagement"
+    effect    = "Allow"
+    actions   = local.s3_bucket_actions
+    resources = local.prod_resources.s3_buckets
+  }
+
+  # S3 object operations
+  statement {
+    sid       = "S3ObjectOperations"
+    effect    = "Allow"
+    actions   = local.s3_object_actions
+    resources = local.prod_resources.s3_objects
+  }
+
+  # DynamoDB
+  statement {
+    sid       = "DynamoDBManagement"
+    effect    = "Allow"
+    actions   = local.dynamodb_actions
+    resources = local.prod_resources.dynamodb_tables
+  }
+
+  # Route53 & ACM
+  statement {
+    sid       = "Route53AndACM"
+    effect    = "Allow"
+    actions   = local.route53_acm_actions
+    resources = local.prod_resources.route53_acm
+  }
+
+  # Cognito
+  statement {
+    sid       = "CognitoUserPools"
+    effect    = "Allow"
+    actions   = local.cognito_actions
+    resources = local.prod_resources.cognito_userpools
+  }
+
+  # SQS
+  statement {
+    sid       = "SQSManagement"
+    effect    = "Allow"
+    actions   = local.sqs_actions
+    resources = local.prod_resources.sqs_queues
+  }
+}
+
+data "aws_iam_policy_document" "terraform_prod_policy_infra_doc" {
   # S3 for Terraform state (bucket-level)
   statement {
     sid       = "S3StateBucket"
@@ -635,39 +719,7 @@ data "aws_iam_policy_document" "terraform_prod_policy_doc" {
     resources = local.prod_resources.s3_state_bucket
   }
 
-  # S3 bucket management for application buckets
-  statement {
-    sid       = "S3BucketManagement"
-    effect    = "Allow"
-    actions   = local.s3_bucket_actions
-    resources = local.prod_resources.s3_buckets
-  }
-
-  # S3 object operations for application buckets
-  statement {
-    sid       = "S3ObjectOperations"
-    effect    = "Allow"
-    actions   = local.s3_object_actions
-    resources = local.prod_resources.s3_objects
-  }
-
-  # DynamoDB table management for application data
-  statement {
-    sid       = "DynamoDBManagement"
-    effect    = "Allow"
-    actions   = local.dynamodb_actions
-    resources = local.prod_resources.dynamodb_tables
-  }
-
-  # Route53 & ACM (DNS and certificates)
-  statement {
-    sid       = "Route53AndACM"
-    effect    = "Allow"
-    actions   = local.route53_acm_actions
-    resources = local.prod_resources.route53_acm
-  }
-
-  # CloudFormation (SAM deployments)
+  # CloudFormation
   statement {
     sid       = "CloudFormationForSAM"
     effect    = "Allow"
@@ -675,7 +727,7 @@ data "aws_iam_policy_document" "terraform_prod_policy_doc" {
     resources = local.prod_resources.cf_stacks
   }
 
-  # Lambda (SAM deployments)
+  # Lambda
   statement {
     sid       = "LambdaForSAM"
     effect    = "Allow"
@@ -683,7 +735,7 @@ data "aws_iam_policy_document" "terraform_prod_policy_doc" {
     resources = local.prod_resources.lambda_functions
   }
 
-  # API Gateway (SAM deployments)
+  # API Gateway
   statement {
     sid       = "ApiGatewayForSAM"
     effect    = "Allow"
@@ -691,7 +743,7 @@ data "aws_iam_policy_document" "terraform_prod_policy_doc" {
     resources = local.prod_resources.apigw_restapis
   }
 
-  # CloudWatch Logs (Lambda logging)
+  # CloudWatch Logs
   statement {
     sid       = "CloudWatchLogs"
     effect    = "Allow"
@@ -699,29 +751,30 @@ data "aws_iam_policy_document" "terraform_prod_policy_doc" {
     resources = local.prod_resources.logs_groups
   }
 
-  # IAM (read and inline policy ops required by SAM/CFN)
+  # IAM
   statement {
     sid       = "IAMOperations"
     effect    = "Allow"
     actions   = local.iam_actions
     resources = local.prod_resources.iam_all
   }
-
-  # Cognito (user pools)
-  statement {
-    sid       = "CognitoUserPools"
-    effect    = "Allow"
-    actions   = local.cognito_actions
-    resources = local.prod_resources.cognito_userpools
-  }
 }
 
-resource "aws_iam_policy" "terraform_prod_policy" {
-  name   = "TerraformProdPolicy"
-  policy = data.aws_iam_policy_document.terraform_prod_policy_doc.json
+resource "aws_iam_policy" "terraform_prod_policy_infra" {
+  name   = "TerraformProdPolicyInfra"
+  policy = data.aws_iam_policy_document.terraform_prod_policy_infra_doc.json
 
   tags = local.tags
 }
+
+resource "aws_iam_policy" "terraform_prod_policy_services" {
+  name   = "TerraformProdPolicyServices"
+  policy = data.aws_iam_policy_document.terraform_prod_policy_services_doc.json
+
+  tags = local.tags
+}
+
+
 
 # ==============================================================================
 # IAM ROLE: CICDRunnerRole
@@ -781,9 +834,14 @@ resource "aws_iam_policy" "cicd_runner_policy" {
 #   policy_arn = aws_iam_policy.terraform_dev_policy.arn
 # }
 
-resource "aws_iam_role_policy_attachment" "terraform_prod_attach" {
+resource "aws_iam_role_policy_attachment" "terraform_prod_attach_infra" {
   role       = aws_iam_role.terraform_prod.name
-  policy_arn = aws_iam_policy.terraform_prod_policy.arn
+  policy_arn = aws_iam_policy.terraform_prod_policy_infra.arn
+}
+
+resource "aws_iam_role_policy_attachment" "terraform_prod_attach_services" {
+  role       = aws_iam_role.terraform_prod.name
+  policy_arn = aws_iam_policy.terraform_prod_policy_services.arn
 }
 
 resource "aws_iam_role_policy_attachment" "cicd_runner_attach" {

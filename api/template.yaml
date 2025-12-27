@@ -150,7 +150,7 @@ Resources:
     # checkov:skip=CKV_AWS_173:Using default AWS Service key for encryption (free option)
     # checkov:skip=CKV_AWS_117:Ignore it for now
     Properties:
-      ReservedConcurrentExecutions: 10
+      ReservedConcurrentExecutions: 20
       # Configure Dead Letter Queue for failed invocations
       DeadLetterQueue:
         Type: SQS
@@ -238,7 +238,7 @@ Resources:
     # checkov:skip=CKV_AWS_173:Using default AWS Service key for encryption (free option)
     # checkov:skip=CKV_AWS_117:Ignore it for now
     Properties:
-      ReservedConcurrentExecutions: 10
+      ReservedConcurrentExecutions: 20
       # Configure Dead Letter Queue for failed invocations
       DeadLetterQueue:
         Type: SQS
