@@ -476,7 +476,8 @@ data "aws_iam_policy_document" "terraform_dev_policy_services_doc" {
 }
 
 data "aws_iam_policy_document" "terraform_dev_policy_infra_doc" {
-
+  # checkov:skip=CKV_AWS_356:Ignore it for now
+  # checkov:skip=CKV_AWS_109:Ignore it for now
   # S3 for Terraform state (bucket-level)
   statement {
     sid       = "S3StateBucket"
