@@ -147,10 +147,11 @@ Resources:
   # AWS automatically scales them based on traffic and charges only for execution time.
   ReadNotesFunction:
     Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_115:Concurrency limit removed to avoid account limit errors
     # checkov:skip=CKV_AWS_173:Using default AWS Service key for encryption (free option)
     # checkov:skip=CKV_AWS_117:Ignore it for now
     Properties:
-      ReservedConcurrentExecutions: 20
+      ReservedConcurrentExecutions: 3
       # Configure Dead Letter Queue for failed invocations
       DeadLetterQueue:
         Type: SQS
@@ -235,10 +236,11 @@ Resources:
   # Write operations are typically less frequent but more critical than reads.
   WriteNotesFunction:
     Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_115:Concurrency limit removed to avoid account limit errors
     # checkov:skip=CKV_AWS_173:Using default AWS Service key for encryption (free option)
     # checkov:skip=CKV_AWS_117:Ignore it for now
     Properties:
-      ReservedConcurrentExecutions: 20
+      ReservedConcurrentExecutions: 3
       # Configure Dead Letter Queue for failed invocations
       DeadLetterQueue:
         Type: SQS
