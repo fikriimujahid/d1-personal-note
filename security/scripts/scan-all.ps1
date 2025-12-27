@@ -50,6 +50,7 @@ param (
 
 $ErrorActionPreference = "Continue"
 $DATE = Get-Date -Format "dd-MM-yyyy"
+$env:PYTHONUTF8 = "1"
 
 # Fix: Report path relative to project root
 $ProjectRoot = (Get-Item $PSScriptRoot).Parent.Parent.FullName
@@ -173,108 +174,113 @@ if ($Mode -in @("monthly", "on-change", "all")) {
 # ==========================================================
 # 2. Dependency Scanning (Monthly Requirement)
 # ==========================================================
-# if ($Mode -in @("monthly", "all")) {
-#     $depCheckOut = "$BASE/2.dependencies"
+if ($Mode -in @("monthly", "all")) {
+    $depCheckOut = "$BASE/2.dependencies"
     
-#     # Try local dependency-check first, fallback to Docker
-#     if (Get-Command "dependency-check" -ErrorAction SilentlyContinue) {
-#         Run-ScanTool -Name "dependency-check" -Description "OWASP Dependency-Check (Local)" -CommandBlock {
-#             dependency-check --scan . --format JSON --out $depCheckOut --disableAssembly
-#         }
-#     } 
-#     elseif (Get-Command "docker" -ErrorAction SilentlyContinue) {
-#          # Calculate relative path for Docker volume mapping
-#          $CurrentDir = $ProjectRoot
+    # Try local dependency-check first, fallback to Docker
+    # if (Get-Command "dependency-check" -ErrorAction SilentlyContinue) {
+    #     Run-ScanTool -Name "dependency-check" -Description "OWASP Dependency-Check (Local)" -CommandBlock {
+    #         dependency-check --scan . --format JSON --out $depCheckOut --disableAssembly
+    #     }
+    # } 
+    # elseif (Get-Command "docker" -ErrorAction SilentlyContinue) {
+    #      # Calculate relative path for Docker volume mapping
+    #      $CurrentDir = $ProjectRoot
          
-#          # Normalize to forward slashes for consistent Docker volume behavior
-#          $DockerSrc = $CurrentDir.Replace('\', '/')
+    #      # Normalize to forward slashes for consistent Docker volume behavior
+    #      $DockerSrc = $CurrentDir.Replace('\', '/')
          
-#          # Relative path calculation
-#          $RelReportPath = $BASE.Replace($CurrentDir, "").Trim('\').Replace('\', '/')
-#          $ContainerOut = "/src/$RelReportPath/2.dependencies"
+    #      # Relative path calculation
+    #      $RelReportPath = $BASE.Replace($CurrentDir, "").Trim('\').Replace('\', '/')
+    #      $ContainerOut = "/src/$RelReportPath/2.dependencies"
 
-#          # Data directory for persistence
-#          $DataDir = Join-Path $ProjectRoot "security\dependency-check-data"
-#          if (-not (Test-Path $DataDir)) {
-#             New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
-#          }
-#          $DockerData = $DataDir.Replace('\', '/')
+    #      # Data directory for persistence
+    #      $DataDir = Join-Path $ProjectRoot "security\dependency-check-data"
+    #      if (-not (Test-Path $DataDir)) {
+    #         New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
+    #      }
+    #      $DockerData = $DataDir.Replace('\', '/')
 
-#          Run-ScanTool -Name "docker" -Description "OWASP Dependency-Check (Docker)" -CommandBlock {
-#             Write-Host "Using Docker container: owasp/dependency-check" -ForegroundColor Gray
-#             Write-Warning "First run (or after expiration) requires downloading NVD vulnerability data. This may take several minutes."
-#             Write-Host "Debug: Volume mapping src=${DockerSrc} data=${DockerData}" -ForegroundColor DarkGray
+    #      Run-ScanTool -Name "docker" -Description "OWASP Dependency-Check (Docker)" -CommandBlock {
+    #         Write-Host "Using Docker container: owasp/dependency-check" -ForegroundColor Gray
+    #         Write-Warning "First run (or after expiration) requires downloading NVD vulnerability data. This may take several minutes."
             
-#             # Added --user 0 (root) to fix volume permission issues on Windows
-#             # Added exclusions to prevent hanging on large directories like node_modules
-#             $cmd = "docker run --rm -t --user 0 --volume ""${DockerSrc}:/src"" --volume ""${DockerData}:/usr/share/dependency-check/data"" owasp/dependency-check --scan /src --format JSON --out ""$ContainerOut"" --disableAssembly --exclude ""**/node_modules/**"" --exclude ""**/.git/**"" --exclude ""**/dist/**"""
-            
-#             Write-Host "Executing command:" -ForegroundColor Cyan
-#             Write-Host $cmd -ForegroundColor Gray
-            
-#             # Use Invoke-Expression to avoid PowerShell parsing issues with arguments
-#             Invoke-Expression $cmd
-#          }
-#     } else {
-#         Write-Warning "Neither 'dependency-check' nor 'docker' found. Skipping OWASP Dependency Scan."
-#     }
+    #         $DockerReport = "$BASE/2.dependencies".Replace('\', '/')
+    #         docker run --rm -t --user 0 --volume "${DockerSrc}:/src:ro" --volume "${DockerData}:/usr/share/dependency-check/data" --volume "${DockerReport}:/report" owasp/dependency-check --scan /src -f JSON -f HTML -f SARIF --out /report --project "project-dependency-scan" --disableAssembly --exclude "**/node_modules/**" --exclude "**/.git/**" --exclude "**/dist/**"
+    #      }
+    # } else {
+    #     Write-Warning "Neither 'dependency-check' nor 'docker' found. Skipping OWASP Dependency Scan."
+    # }
 
-#     Run-ScanTool -Name "npm" -Description "NPM Audit" -CommandBlock {
-#         # Find package.json files in subdirectories (e.g., frontend, api)
-#         # Using Depth 2 to search immediate subfolders but avoid deep node_modules traversal
-#         $projects = Get-ChildItem -Path $ProjectRoot -Recurse -Depth 2 -Filter "package.json" | 
-#                     Where-Object { $_.FullName -notmatch "node_modules" }
+    # Run-ScanTool -Name "npm" -Description "NPM Audit" -CommandBlock {
+    #     # Find package.json files in subdirectories (e.g., frontend, api)
+    #     # Using Depth 2 to search immediate subfolders but avoid deep node_modules traversal
+    #     $projects = Get-ChildItem -Path $ProjectRoot -Recurse -Depth 2 -Filter "package.json" | 
+    #                 Where-Object { $_.FullName -notmatch "node_modules" }
 
-#         if (-not $projects) {
-#             Write-Warning "  No package.json files found to audit."
-#         }
+    #     if (-not $projects) {
+    #         Write-Warning "  No package.json files found to audit."
+    #     }
 
-#         foreach ($proj in $projects) {
-#             $dir = $proj.Directory.FullName
-#             $projName = $proj.Directory.Name
+    #     foreach ($proj in $projects) {
+    #         $dir = $proj.Directory.FullName
+    #         $projName = $proj.Directory.Name
             
-#             # npm audit requires package-lock.json
-#             if (Test-Path (Join-Path $dir "package-lock.json")) {
-#                 Write-Host "  Auditing project: $projName" -ForegroundColor Gray
+    #         # npm audit requires package-lock.json
+    #         if (Test-Path (Join-Path $dir "package-lock.json")) {
+    #             Write-Host "  Auditing project: $projName" -ForegroundColor Gray
                 
-#                 # Navigate to project directory
-#                 Push-Location $dir
-#                 try {
-#                     npm audit --json > "$BASE/2.dependencies/npm-audit-$projName.json"
-#                 } finally {
-#                     Pop-Location
-#                 }
-#             } else {
-#                 Write-Warning "  Skipping $projName : No package-lock.json found (run 'npm install' first)"
-#             }
-#         }
-#     }
-# }
+    #             # Navigate to project directory
+    #             Push-Location $dir
+    #             try {
+    #                 npm audit --json > "$BASE/2.dependencies/npm-audit-$projName.json"
+    #             } finally {
+    #                 Pop-Location
+    #             }
+    #         } else {
+    #             Write-Warning "  Skipping $projName : No package-lock.json found (run 'npm install' first)"
+    #         }
+    #     }
+    # }
+}
 
 # ==========================================================
 # 3. Source Code Review – Automated (SAST)
 # ==========================================================
-# if ($Mode -in @("monthly", "on-change", "all")) {
-#     Run-ScanTool -Name "semgrep" -Description "Semgrep SAST" -CommandBlock {
-#         # Set UTF-8 encoding to avoid Windows encoding issues with special characters
-#         $env:PYTHONIOENCODING = "utf-8"
+if ($Mode -in @("monthly", "on-change", "all")) {
+    # Run-ScanTool -Name "semgrep" -Description "Semgrep SAST" -CommandBlock {
+    #     # Set UTF-8 encoding to avoid Windows encoding issues with special characters
+    #     $env:PYTHONIOENCODING = "utf-8"
+    #     $env:PYTHONUTF8 = "1"
         
-#         semgrep scan --config=auto --json | Out-File -FilePath "$BASE/3.sast/semgrep.json" -Encoding utf8
-#     }
-# }
+    #     semgrep scan $ProjectRoot `
+    #     --config p/ci `
+    #     --config p/security-audit `
+    #     --exclude security `
+    #     --exclude node_modules `
+    #     --json `
+    #     --output "$BASE/3.sast/semgrep.json"
+    # }
+}
 
 # ==========================================================
 # 4. Infrastructure as Code (Monthly)
 # ==========================================================
-# if ($Mode -in @("monthly", "all")) {
-#     Run-ScanTool -Name "checkov" -Description "Checkov IaC" -CommandBlock {
-#         checkov -d infra/terraform --output json > "$BASE/4.iac/checkov.json"
-#     }
+if ($Mode -in @("monthly", "all")) {
+    # Run-ScanTool -Name "checkov" -Description "Checkov IaC (Infra)" -CommandBlock {
+    #     $terraformPath = Join-Path $ProjectRoot "infra\terraform"
+    #     checkov -d $terraformPath --output json | Out-File -FilePath "$BASE/4.iac/checkov-infra.json" -Encoding utf8
+    # }
 
-#     Run-ScanTool -Name "tfsec" -Description "tfsec IaC" -CommandBlock {
-#         tfsec infra/terraform --format json > "$BASE/4.iac/tfsec.json"
-#     }
-# }
+    # Run-ScanTool -Name "checkov" -Description "Checkov IaC (API)" -CommandBlock {
+    #     $apiPath = Join-Path $ProjectRoot "api"
+    #     checkov -d $apiPath --output json | Out-File -FilePath "$BASE/4.iac/checkov-api.json" -Encoding utf8
+    # }
+
+    Run-ScanTool -Name "tfsec" -Description "tfsec IaC" -CommandBlock {
+        tfsec infra/terraform --format json > "$BASE/4.iac/tfsec.json"
+    }
+}
 
 # ==========================================================
 # 5. Vulnerability Assessment (VA / DAST)
