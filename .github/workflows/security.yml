@@ -1,108 +1,273 @@
+# ==============================================================================
+# SECURITY SCANNING WORKFLOW
+# ==============================================================================
+# Purpose: Automated security testing for DevSecOps compliance
+# This workflow runs multiple security tools to detect vulnerabilities early
+# in the development lifecycle (shift-left security approach)
+# ==============================================================================
+
+# Workflow Name: This appears in the GitHub Actions UI
 name: Security Scan
 
+# ==============================================================================
+# TRIGGER CONDITIONS (when this workflow runs)
+# ==============================================================================
 on:
+  # 1. PUSH TRIGGER
+  #    Runs when code is pushed to main or dev branches
+  #    Use case: Catch issues immediately after merge
   push:
     branches: [ "main", "dev" ]
+  
+  # 2. PULL REQUEST TRIGGER
+  #    Runs when a PR is opened/updated targeting main or dev
+  #    Use case: Block merging if security issues are found
   pull_request:
     branches: [ "main", "dev" ]
+  
+  # 3. SCHEDULED TRIGGER
+  #    Runs automatically on a schedule (even without new commits)
+  #    Cron format: minute hour day month day-of-week
+  #    '0 0 * * 0' = Every Sunday at midnight UTC
+  #    Use case: Detect NEW vulnerabilities in existing code
+  #               (e.g., a library you use gets a CVE published)
   schedule:
-    - cron: '0 0 * * 0' # Weekly run
+    - cron: '0 0 * * 0'
+  
+  # 4. MANUAL TRIGGER
+  #    Allows running this workflow manually from GitHub UI
+  #    Use case: Ad-hoc security scans or testing workflow changes
   workflow_dispatch:
 
+# ==============================================================================
+# PERMISSIONS (what this workflow can do in GitHub)
+# ==============================================================================
+# Following the principle of least privilege:
+# Only grant the minimum permissions needed
 permissions:
+  # READ-ONLY access to repository code
+  # Allows checkout but prevents accidental modifications
   contents: read
+  
+  # WRITE access to GitHub Security tab
+  # Required to upload SARIF results which populate the "Security" tab
+  # (SARIF = Static Analysis Results Interchange Format)
   security-events: write
 
+# ==============================================================================
+# JOBS (independent tasks that can run in parallel)
+# ==============================================================================
+# Each job runs on a fresh virtual machine (isolation for security)
+# Jobs run in parallel by default unless you specify dependencies
 jobs:
-  # 1. Secrets Detection
+
+  # ============================================================================
+  # JOB 1: SECRETS DETECTION
+  # ============================================================================
+  # Goal: Find hardcoded secrets (API keys, passwords, tokens) in code
+  # Tool: Gitleaks - scans Git history for leaked credentials
   secrets:
+    # Display name in GitHub Actions UI
     name: Secrets Scan
+    
+    # Virtual machine OS to run on
+    # ubuntu-latest = GitHub-hosted runner with Ubuntu Linux
     runs-on: ubuntu-latest
+    
+    # STEPS: Sequential tasks within this job
     steps:
+      # STEP 1.1: Get the code
+      # Uses a pre-built GitHub Action to clone your repository
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
+          # fetch-depth: 0 means "download entire Git history"
+          # Why? Gitleaks needs full history to scan all commits
+          # Default is 1 (shallow clone) which only gets latest commit
           fetch-depth: 0
 
+      # STEP 1.2: Run Gitleaks scanner
+      # This action automatically runs Gitleaks and reports findings
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
+          # GITHUB_TOKEN: Automatically provided by GitHub Actions
+          # Gitleaks uses this to create check runs and code annotations
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # 2. Static Application Security Testing (SAST)
+  # ============================================================================
+  # JOB 2: STATIC APPLICATION SECURITY TESTING (SAST)
+  # ============================================================================
+  # Goal: Find security vulnerabilities in SOURCE CODE (without running it)
+  # Tool: Semgrep - multi-language pattern-based code analyzer
+  # Examples: SQL injection, XSS, insecure cryptography
   sast:
     name: SAST (Semgrep)
     runs-on: ubuntu-latest
+    
+    # CONTAINER: Run steps inside a Docker container instead of directly on VM
+    # Why? Semgrep provides an official container with all dependencies pre-installed
     container:
       image: returntocorp/semgrep
+    
     steps:
+      # STEP 2.1: Get the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # STEP 2.2: Run Semgrep analysis
+      # This is a shell command (not a pre-built action)
       - name: Run Semgrep
-        run: semgrep scan --config p/ci --config p/security-audit --sarif --output semgrep.sarif
+        run: |
+          semgrep scan \
+            --config p/ci \
+            --config p/security-audit \
+            --sarif \
+            --output semgrep.sarif
+        # Explanation of flags:
+        # --config p/ci: Use Semgrep's "CI" ruleset (fast, high-confidence rules)
+        # --config p/security-audit: Add security-focused rules
+        #   Note: "p/" means "public registry" maintained by Semgrep
+        # --sarif: Output in SARIF format (GitHub Security compatible)
+        # --output: Save results to this file
         
+      # STEP 2.3: Upload results to GitHub Security tab
+      # This makes vulnerabilities visible in the repo's Security > Code Scanning
       - name: Upload Semgrep Results
         uses: github/codeql-action/upload-sarif@v3
+        # if: always() means run even if previous steps failed
+        # Why? We want to see partial results even if the scan had errors
         if: always()
         with:
           sarif_file: semgrep.sarif
+          # category: Groups results in Security tab (useful if you run multiple SAST tools)
           category: semgrep
 
-  # 3. Infrastructure as Code (IaC) Scanning
+  # ============================================================================
+  # JOB 3: INFRASTRUCTURE AS CODE (IaC) SCANNING
+  # ============================================================================
+  # Goal: Find cloud misconfigurations BEFORE deploying infrastructure
+  # Tools: Checkov + Tfsec (both scan Terraform files)
+  # Examples: Unencrypted S3 buckets, overly permissive security groups
   iac:
     name: IaC Scan (Checkov & Tfsec)
     runs-on: ubuntu-latest
+    
     steps:
+      # STEP 3.1: Get the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # STEP 3.2: Run Checkov (Policy-as-Code scanner)
+      # Checkov checks for compliance with best practices (CIS, PCI-DSS, etc.)
       - name: Run Checkov (Terraform)
         uses: bridgecrewio/checkov-action@master
         with:
+          # directory: Path to your Terraform files
           directory: infra/terraform
+          
+          # framework: What IaC tool to scan
+          # Options: terraform, cloudformation, kubernetes, etc.
           framework: terraform
+          
+          # output_format: How to display results
+          # cli = human-readable console output
+          # sarif = machine-readable GitHub Security format
           output_format: cli,sarif
+          
+          # output_file_path: Where to save each format
+          # console = print CLI output to logs
+          # results.sarif = save SARIF to this file
           output_file_path: console,results.sarif
+          
+          # quiet: Suppress verbose progress messages
           quiet: true
       
-      # Upload Checkov Results
+      # STEP 3.3: Upload Checkov results to GitHub Security
       - name: Upload Checkov SARIF
         uses: github/codeql-action/upload-sarif@v3
+        # if: success() || failure() means run unless CANCELLED
+        # Why? Always upload results even if Checkov found issues
         if: success() || failure()
         with:
           sarif_file: results.sarif
           category: checkov
 
+      # STEP 3.4: Run Tfsec (Terraform-specific security scanner)
+      # Tfsec is faster than Checkov but Terraform-only
+      # Running both gives comprehensive coverage
       - name: Run Tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
         with:
+          # working_directory: Where your .tf files are located
           working_directory: infra/terraform
+          # Note: This action auto-uploads SARIF results (no manual upload needed)
 
-  # 4. Dependency Scanning (SCA) - Often slower, so maybe run on Schedule or PR to main
+  # ============================================================================
+  # JOB 4: SOFTWARE COMPOSITION ANALYSIS (SCA) / DEPENDENCY SCANNING
+  # ============================================================================
+  # Goal: Find known vulnerabilities (CVEs) in third-party libraries
+  # Tool: OWASP Dependency-Check
+  # Examples: Using a version of React with a known XSS vulnerability
   dependency-check:
-    name: OWL Dependency Check
+    name: OWASP Dependency Check
     runs-on: ubuntu-latest
+    
     steps:
+      # STEP 4.1: Get the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # STEP 4.2: Scan dependencies for known CVEs
+      # This downloads a vulnerability database and checks your dependencies
       - name: Run Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
+          # project: Name shown in reports
           project: 'd1-personal-note'
+          
+          # path: Directory to scan
+          # '.' means scan entire repository
           path: '.'
+          
+          # format: Output format
+          # SARIF allows GitHub Security integration
           format: 'SARIF'
+          
+          # out: Where to save reports
           out: 'reports'
+          
+          # args: Additional command-line arguments
+          # Using YAML's '>' for multi-line string (newlines become spaces)
           args: >
             --disableAssembly
             --exclude "**/node_modules/**"
             --exclude "**/.git/**"
             --exclude "**/dist/**"
+          # Explanation of args:
+          # --disableAssembly: Skip .NET DLL scanning (faster, not needed here)
+          # --exclude: Ignore these directories to speed up scan
+          #   node_modules = downloaded npm packages (can be huge)
+          #   .git = version control metadata (not our code)
+          #   dist = compiled/build output (derived from source)
       
+      # STEP 4.3: Upload Dependency Check results
       - name: Upload Dependency Check Results
         uses: github/codeql-action/upload-sarif@v3
         if: success() || failure()
         with:
           sarif_file: reports/dependency-check-report.sarif
           category: dependency-check
+
+# ==============================================================================
+# WORKFLOW EXECUTION SUMMARY
+# ==============================================================================
+# When this workflow runs:
+# 1. GitHub spins up 4 parallel Ubuntu virtual machines
+# 2. Each VM runs one job (secrets, sast, iac, dependency-check)
+# 3. Results are uploaded to GitHub Security > Code Scanning Alerts
+# 4. If running on a PR, results appear as PR checks (can block merge)
+# 5. VMs are destroyed after completion (clean slate every run)
+#
+# Cost: FREE on public repos, included minutes on private repos
+# ==============================================================================
