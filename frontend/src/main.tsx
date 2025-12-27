@@ -56,11 +56,10 @@ Amplify.configure({
       userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
 
       // Client ID - think of it as "app credentials" to access the user pool
-      // Format: 1234567890abcdefghijklmnop
       // Why separate from pool ID: One pool can have multiple apps
       userPoolClientId: import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID,
     },
-  },
+  }, 
 });
 
 // ============================================================================

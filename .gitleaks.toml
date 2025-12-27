@@ -1,0 +1,14 @@
+[allowlist]
+paths = [
+    '''security/''',
+    '''node_modules/''',
+    '''.git/''',
+    '''.aws-sam/''',
+    '''dist/''',
+    '''build/''',
+    '''coverage/''',
+    '''security/''',
+    '''.terraform/''',
+    '''dependency-check-data/''',
+    '''result/'''
+]
