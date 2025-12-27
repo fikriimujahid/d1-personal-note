@@ -1,0 +1,556 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>IaC Security Report</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f5f5f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; }
+        h2 { color: #2c3e50; margin-top: 40px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .summary { margin-bottom: 30px; padding: 15px; background: #ecf0f1; border-radius: 5px; }
+        
+        .tool-section { margin-top: 30px; }
+        .description { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }
+        .description p { margin: 5px 0; line-height: 1.5; }
+        .tool-link { font-weight: bold; color: #3498db; text-decoration: none; }
+        .tool-link:hover { text-decoration: underline; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; word-wrap: break-word; }
+        th { background-color: #34495e; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; color: white; font-size: 0.85em; font-weight: bold; }
+        .CRITICAL { background-color: #c0392b; }
+        .HIGH { background-color: #e74c3c; }
+        .MEDIUM { background-color: #f39c12; }
+        .LOW { background-color: #3498db; }
+        
+        .empty-state { padding: 20px; text-align: center; color: #7f8c8d; font-style: italic; background: #fff; border: 1px dashed #ddd; }
+        .res-name { font-weight: bold; color: #444; }
+        .file-path { font-size: 0.85em; color: #888; margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Infrastructure as Code (IaC) Security</h1>
+        <div class="summary">
+            <strong>Total Misconfigurations:</strong> 58 <br>
+            <strong>Breakdown:</strong> Critical: 0 | High: 30 | Medium: 28 | Low: 0
+        </div>
+
+        <div class="tool-section">
+            <h2>1. Checkov</h2>
+            <div class="description">
+                <p><strong>What is Checkov?</strong></p>
+                <p>
+                    <a href="https://www.checkov.io/" class="tool-link" target="_blank">Checkov</a> is a static code analysis tool for infrastructure-as-code.
+                    It scans cloud infrastructure provisioned using Terraform, CloudFormation, Kubernetes, Serverless, and ARM Templates and detects security and compliance misconfigurations.
+                </p>
+            </div>
+            <table>
+                <tr>
+                    <th style="width: 10%">Severity</th>
+                    <th style="width: 15%">Rule ID</th>
+                    <th style="width: 30%">Resource / File</th>
+                    <th style="width: 45%">Description</th>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-api-gateway-caching-is-enabled" target="_blank" class="tool-link">CKV_AWS_120</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Api.NotesApi</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure API Gateway caching is enabled</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-aws-lambda-function-is-configured-for-a-dead-letter-queue-dlq" target="_blank" class="tool-link">CKV_AWS_116</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.ReadNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure that AWS Lambda function is configured for a Dead Letter Queue(DLQ)</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-serverless-policies/bc-aws-serverless-5" target="_blank" class="tool-link">CKV_AWS_173</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.ReadNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Check encryption settings for Lambda environment variable</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-buckets-are-encrypted-with-kms-by-default" target="_blank" class="tool-link">CKV_AWS_145</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_s3_bucket.website</div>
+                        <div class="file-path">\main.tf</div>
+                    </td>
+                    <td>Ensure that S3 buckets are encrypted with KMS by default</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-logging-33" target="_blank" class="tool-link">CKV2_AWS_31</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_wafv2_web_acl.cloudfront</div>
+                        <div class="file-path">\main.tf</div>
+                    </td>
+                    <td>Ensure WAF2 has a Logging Configuration</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/logging-17" target="_blank" class="tool-link">CKV_AWS_76</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Api.NotesApi</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure API Gateway has Access Logging enabled</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-serverless-policies/bc-aws-serverless-5" target="_blank" class="tool-link">CKV_AWS_173</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.WriteNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Check encryption settings for Lambda environment variable</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-aws-lambda-function-is-configured-for-function-level-concurrent-execution-limit" target="_blank" class="tool-link">CKV_AWS_115</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.WriteNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure that AWS Lambda function is configured for function-level concurrent execution limit</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-aws-lambda-function-is-configured-inside-a-vpc-1" target="_blank" class="tool-link">CKV_AWS_117</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.WriteNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure that AWS Lambda function is configured inside a VPC</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-aws-lambda-function-is-configured-for-function-level-concurrent-execution-limit" target="_blank" class="tool-link">CKV_AWS_115</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.ReadNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure that AWS Lambda function is configured for function-level concurrent execution limit</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-aws-lambda-function-is-configured-inside-a-vpc-1" target="_blank" class="tool-link">CKV_AWS_117</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.ReadNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure that AWS Lambda function is configured inside a VPC</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-aws-lambda-function-is-configured-for-a-dead-letter-queue-dlq" target="_blank" class="tool-link">CKV_AWS_116</a></td>
+                    <td>
+                        <div class="res-name">AWS::Serverless::Function.WriteNotesFunction</div>
+                        <div class="file-path">/template.yaml</div>
+                    </td>
+                    <td>Ensure that AWS Lambda function is configured for a Dead Letter Queue(DLQ)</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-374" target="_blank" class="tool-link">CKV_AWS_374</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_cloudfront_distribution.website</div>
+                        <div class="file-path">\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Ensure AWS CloudFront web distribution has geo restriction enabled</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-iam-policies-do-not-allow-permissions-management-resource-exposure-without-constraint" target="_blank" class="tool-link">CKV_AWS_109</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles.aws_iam_policy_document.terraform_dev_policy_doc</div>
+                        <div class="file-path">\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>Ensure IAM policies does not allow permissions management / resource exposure without constraints</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-iam-policies-do-not-allow-permissions-management-resource-exposure-without-constraint" target="_blank" class="tool-link">CKV_AWS_109</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>Ensure IAM policies does not allow permissions management / resource exposure without constraints</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52" target="_blank" class="tool-link">CKV_AWS_119</a></td>
+                    <td>
+                        <div class="res-name">module.database.aws_dynamodb_table.main["notes"]</div>
+                        <div class="file-path">\modules\dynamodb\main.tf</div>
+                    </td>
+                    <td>Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-300" target="_blank" class="tool-link">CKV_AWS_300</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_s3_bucket_lifecycle_configuration.website</div>
+                        <div class="file-path">\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Ensure S3 lifecycle configuration sets period for aborting failed uploads</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-310" target="_blank" class="tool-link">CKV_AWS_310</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_cloudfront_distribution.website</div>
+                        <div class="file-path">\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Ensure CloudFront distributions should have origin failover configured</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62" target="_blank" class="tool-link">CKV2_AWS_62</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_s3_bucket.website</div>
+                        <div class="file-path">\main.tf</div>
+                    </td>
+                    <td>Ensure S3 buckets should have event notifications enabled</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging" target="_blank" class="tool-link">CKV_AWS_18</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_s3_bucket.website</div>
+                        <div class="file-path">\main.tf</div>
+                    </td>
+                    <td>Ensure the S3 bucket has access logging enabled</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled" target="_blank" class="tool-link">CKV_AWS_144</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_s3_bucket.website</div>
+                        <div class="file-path">\main.tf</div>
+                    </td>
+                    <td>Ensure that S3 bucket has cross-region replication enabled</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-356" target="_blank" class="tool-link">CKV_AWS_356</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>Ensure no IAM policies documents allow "*" as a statement's resource for restrictable actions</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-networking-65" target="_blank" class="tool-link">CKV2_AWS_32</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_cloudfront_distribution.website</div>
+                        <div class="file-path">\main.tf</div>
+                    </td>
+                    <td>Ensure CloudFront distribution has a response headers policy attached</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-47" target="_blank" class="tool-link">CKV2_AWS_47</a></td>
+                    <td>
+                        <div class="res-name">module.hosting.aws_cloudfront_distribution.website</div>
+                        <div class="file-path">\main.tf</div>
+                    </td>
+                    <td>Ensure AWS CloudFront attached WAFv2 WebACL is configured with AMR for Log4j Vulnerability</td>
+                </tr></table>        </div>
+
+        <div class="tool-section">
+            <h2>2. TFSec</h2>
+            <div class="description">
+                <p><strong>What is TFSec?</strong></p>
+                <p>
+                    <a href="https://aquasecurity.github.io/tfsec/" class="tool-link" target="_blank">TFSec</a> uses static analysis of your terraform code to spot potential security issues.
+                    It checks for things like sensitive data inclusion, lack of encryption, open security groups, and more.
+                </p>
+            </div>
+            <table>
+                <tr>
+                    <th style="width: 10%">Severity</th>
+                    <th style="width: 15%">Rule ID</th>
+                    <th style="width: 30%">Resource / File</th>
+                    <th style="width: 45%">Description</th>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/encryption-customer-key/" target="_blank" class="tool-link">AVD-AWS-0132</a></td>
+                    <td>
+                        <div class="res-name">aws_s3_bucket_server_side_encryption_configuration.website</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Bucket does not encrypt data with a customer managed key.</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/encryption-customer-key/" target="_blank" class="tool-link">AVD-AWS-0132</a></td>
+                    <td>
+                        <div class="res-name">module.hosting</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Bucket does not encrypt data with a customer managed key.</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.cicd_runner_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.cicd_runner_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_dev_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_dev_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_dev_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_dev_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">data.aws_iam_policy_document.terraform_prod_policy_doc</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'</td>
+                </tr>                <tr>
+                    <td><span class="badge HIGH">HIGH</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/" target="_blank" class="tool-link">AVD-AWS-0057</a></td>
+                    <td>
+                        <div class="res-name">module.iam_roles</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\iam-roles\main.tf</div>
+                    </td>
+                    <td>IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/enable-bucket-logging/" target="_blank" class="tool-link">AVD-AWS-0089</a></td>
+                    <td>
+                        <div class="res-name">module.hosting</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Bucket does not have logging enabled</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/cloudfront/enable-logging/" target="_blank" class="tool-link">AVD-AWS-0010</a></td>
+                    <td>
+                        <div class="res-name">aws_cloudfront_distribution.website</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Distribution does not have logging enabled.</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/cloudfront/enable-logging/" target="_blank" class="tool-link">AVD-AWS-0010</a></td>
+                    <td>
+                        <div class="res-name">module.hosting</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Distribution does not have logging enabled.</td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/enable-bucket-logging/" target="_blank" class="tool-link">AVD-AWS-0089</a></td>
+                    <td>
+                        <div class="res-name">aws_s3_bucket.website</div>
+                        <div class="file-path">C:\DEMOP\d1-personal-note\infra\terraform\modules\hosting\main.tf</div>
+                    </td>
+                    <td>Bucket does not have logging enabled</td>
+                </tr></table>        </div>
+
+        <div class="tool-section" style="margin-top: 50px; border-top: 2px solid #eee; padding-top: 20px;">
+            <h2>Remediation</h2>
+            <ul>
+                <li><strong>Checkov Rules:</strong> <a href="https://www.checkov.io/5.Policy%20Index/all.html" class="tool-link">Policy Index</a></li>
+                <li><strong>TFSec Rules:</strong> <a href="https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/" class="tool-link">AWS Checks</a></li>
+                <li><strong>General Advice:</strong> 
+                    <ul>
+                        <li>Apply least privilege to IAM policies.</li>
+                        <li>Ensure encryption at rest and in transit is enabled for all data stores.</li>
+                        <li>Restrict security groups to minimum required ports and ranges.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

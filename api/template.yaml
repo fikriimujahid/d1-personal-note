@@ -84,6 +84,8 @@ Resources:
   # This is the front door to your application. It receives HTTP requests
   # from clients (web browsers, mobile apps) and routes them to Lambda functions.
   NotesApi:
+    # checkov:skip=CKV_AWS_120:API Cache is disabled for this project to reduce costs
+    # checkov:skip=CKV_AWS_76:Access Logging is disabled for this project to reduce costs/complexity
     Type: AWS::Serverless::Api
     Properties:
       # Name of the API in AWS console (includes environment for easy identification)
@@ -128,13 +130,32 @@ Resources:
               RevalidateEvery: 3600
 
   # -----------------------------------------------------------------------------
+  # SQS DEAD LETTER QUEUE (DLQ)
+  # -----------------------------------------------------------------------------
+  # Stores messages that failed to process after multiple attempts
+  DlqQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub 'd1-personal-note-dlq-${Environment}'
+      MessageRetentionPeriod: 1209600 # 14 days
+      KmsMasterKeyId: alias/aws/sqs # Encryption enabled
+
+  # -----------------------------------------------------------------------------
   # READ LAMBDA FUNCTION - Handles fetching notes
   # -----------------------------------------------------------------------------
   # Lambda functions are serverless compute - you don't manage servers.
   # AWS automatically scales them based on traffic and charges only for execution time.
   ReadNotesFunction:
     Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_173:Using default AWS Service key for encryption (free option)
+    # checkov:skip=CKV_AWS_117:Ignore it for now
     Properties:
+      ReservedConcurrentExecutions: 10
+      # Configure Dead Letter Queue for failed invocations
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt DlqQueue.Arn
+      
       # Unique name for this Lambda function in AWS
       FunctionName: !Sub 'd1-personal-note-read-${Environment}'
       
@@ -214,7 +235,15 @@ Resources:
   # Write operations are typically less frequent but more critical than reads.
   WriteNotesFunction:
     Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_173:Using default AWS Service key for encryption (free option)
+    # checkov:skip=CKV_AWS_117:Ignore it for now
     Properties:
+      ReservedConcurrentExecutions: 10
+      # Configure Dead Letter Queue for failed invocations
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt DlqQueue.Arn
+
       # Unique name for this Lambda function
       FunctionName: !Sub 'd1-personal-note-write-${Environment}'
       

@@ -47,7 +47,7 @@ All Checks (Default):
 
 param (
     [Parameter(Mandatory = $false)]
-    [ValidateSet("monthly", "on-change", "va", "all")]
+    [ValidateSet("monthly", "on-change", "va", "all", "iac", "sast")]
     [string]$Mode = "all",
 
     # Required ONLY for VA (DAST)
@@ -134,7 +134,7 @@ if ($Mode -in @("monthly", "on-change", "all")) {
     Run-ScanTool -Name "detect-secrets" -Description "Secrets Scanning" -CommandBlock {
 
         $baselinePath = Join-Path $ProjectRoot "security\.secrets.baseline"
-        $excludePattern = "(node_modules|\.git|\.aws-sam|dist|build|coverage|\.terraform|dependency-check-data|result)"
+        $excludePattern = "(node_modules|\.git|\.aws-sam|dist|build|coverage|\.terraform|dependency-check-data|result|\.secrets.baseline)"
 
         Push-Location $ProjectRoot
         try {
@@ -211,13 +211,15 @@ if ($Mode -in @("monthly", "all")) {
 # ==========================================================
 # 3. Source Code Review – Automated (SAST)
 # ==========================================================
-if ($Mode -in @("monthly", "on-change", "all")) {
+if ($Mode -in @("monthly", "on-change", "all", "sast")) {
     Run-ScanTool -Name "semgrep" -Description "Semgrep SAST" -CommandBlock {
         $env:PYTHONIOENCODING = "utf-8"
         $env:PYTHONUTF8 = "1"
         semgrep scan $ProjectRoot `
         --config p/ci `
         --config p/security-audit `
+        --config p/secrets `
+        --config p/owasp-top-ten `
         --exclude security `
         --exclude node_modules `
         --json `
@@ -228,7 +230,7 @@ if ($Mode -in @("monthly", "on-change", "all")) {
 # ==========================================================
 # 4. Infrastructure as Code (Monthly)
 # ==========================================================
-if ($Mode -in @("monthly", "all")) {
+if ($Mode -in @("monthly", "all", "iac")) {
     Run-ScanTool -Name "checkov" -Description "Checkov IaC (Infra)" -CommandBlock {
         $terraformPath = Join-Path $ProjectRoot "infra\terraform"
         checkov -d $terraformPath --output json | Out-File -FilePath "$BASE/4.iac/checkov-infra.json" -Encoding utf8
@@ -240,10 +242,6 @@ if ($Mode -in @("monthly", "all")) {
     Run-ScanTool -Name "tfsec" -Description "tfsec IaC (Infra)" -CommandBlock {
         $terraformPath = Join-Path $ProjectRoot "infra\terraform"
         tfsec $terraformPath --format json | Out-File -FilePath "$BASE/4.iac/tfsec-infra.json" -Encoding utf8
-    }
-    Run-ScanTool -Name "tfsec" -Description "tfsec IaC (API)" -CommandBlock {
-        $apiPath = Join-Path $ProjectRoot "api"
-        tfsec $apiPath --format json | Out-File -FilePath "$BASE/4.iac/tfsec-api.json" -Encoding utf8
     }
 }
 

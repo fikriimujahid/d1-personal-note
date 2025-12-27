@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>DAST Security Report</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f5f5f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; }
+        h2 { color: #2c3e50; margin-top: 40px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .summary { margin-bottom: 30px; padding: 15px; background: #ecf0f1; border-radius: 5px; }
+        
+        .tool-section { margin-top: 30px; }
+        .description { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }
+        .description p { margin: 5px 0; line-height: 1.5; }
+        .tool-link { font-weight: bold; color: #3498db; text-decoration: none; }
+        .tool-link:hover { text-decoration: underline; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; word-wrap: break-word; vertical-align: top; }
+        th { background-color: #34495e; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; color: white; font-size: 0.85em; font-weight: bold; }
+        .HIGH { background-color: #e74c3c; }
+        .MEDIUM { background-color: #f39c12; }
+        .LOW { background-color: #3498db; }
+        .INFORMATIONAL { background-color: #95a5a6; }
+        
+        .empty-state { padding: 20px; text-align: center; color: #7f8c8d; font-style: italic; background: #fff; border: 1px dashed #ddd; }
+        .url-box { font-family: monospace; font-size: 0.85em; background: #f8f9fa; padding: 5px; border: 1px solid #eee; margin-top: 5px; max-height: 100px; overflow-y: auto; }
+        .solution-box { margin-top: 10px; font-size: 0.9em; border-left: 3px solid #27ae60; padding-left: 10px; color: #555; }
+        .raw-report-link { display: inline-block; padding: 5px 10px; margin-left: 10px; background: #eee; border-radius: 4px; font-size: 0.9em; text-decoration: none; color: #333; border: 1px solid #ddd; }
+        .raw-report-link:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vulnerability Assessment (DAST)</h1>
+        <div class="summary">
+            <strong>Total Alerts:</strong> 20 <br>
+            <strong>Breakdown:</strong> High: 0 | Medium: 3 | Low/Info: 17
+        </div>
+
+        <div class="tool-section">
+            <h2>OWASP ZAP Scans</h2>
+            <div class="description">
+                <p><strong>What is OWASP ZAP?</strong></p>
+                <p>
+                    <a href="https://www.zaproxy.org/" class="tool-link" target="_blank">OWASP Zed Attack Proxy (ZAP)</a> is a Dynamic Application Security Testing (DAST) tool. 
+                    It actively interacts with your running application (both Frontend and API) to find security vulnerabilities such as Cross-Site Scripting (XSS), SQL Injection, and security misconfigurations.
+                </p>
+                <p>This report consolidates findings from:</p>
+                <ul>
+                    <li><strong>Frontend Scan:</strong> Analysis of the Single Page Application (SPA) using AJAXSpider.</li>
+                    <li><strong>API Scan:</strong> Analysis of the Backend API using OpenAPI definitions.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Frontend Findings -->
+        <div class="tool-section">
+            <h3 style="display:flex; align-items:center;">
+                Frontend (SPA) Findings <a href='zap-frontend.html' target='_blank' class='raw-report-link'>View Full ZAP Report</a>            </h3>            <table>
+                <tr>
+                    <th style="width: 10%">Risk</th>
+                    <th style="width: 20%">Alert</th>
+                    <th style="width: 40%">Description & Solution</th>
+                    <th style="width: 30%">Affected URLs</th>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><strong>Missing Anti-clickjacking Header</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The response does not protect against 'ClickJacking' attacks. It should include either Content-Security-Policy with 'frame-ancestors' directive or X-Frame-Options.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Modern Web browsers support the Content-Security-Policy and X-Frame-Options HTTP headers. Ensure one of them is set on all web pages returned by your site/app.</p><p>If you expect the page to be framed only by pages on your server (e.g. it's part of a FRAMESET) then you'll want to use SAMEORIGIN, otherwise if you never expect the page to be framed, you should use DENY. Alternatively consider implementing Content Security Policy's "frame-ancestors" directive.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/</div></td>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><strong>Content Security Policy (CSP) Header Not Set</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page — covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/favicon.ico<br>GET https://d1.fikri.dev/robots.txt<br>GET https://d1.fikri.dev/sitemap.xml</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>Strict-Transport-Security Header Not Set</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-QUU1v8UA.css<br>GET https://d1.fikri.dev/robots.txt<br>GET https://d1.fikri.dev/sitemap.xml</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>Timestamp Disclosure - Unix</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>A timestamp was disclosed by the application/web server. - Unix</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Manually confirm that the timestamp data is not sensitive, and that the data cannot be aggregated to disclose exploitable patterns.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>X-Content-Type-Options Header Missing</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body, potentially causing the response body to be interpreted and displayed as a content type other than the declared content type. Current (early 2014) and legacy versions of Firefox will use the declared content type (if one is set), rather than performing MIME-sniffing.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that does not perform MIME-sniffing at all, or that can be directed by the web application/web server to not perform MIME-sniffing.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-QUU1v8UA.css</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>Insufficient Site Isolation Against Spectre Vulnerability</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>Cross-Origin-Resource-Policy header is an opt-in header designed to counter side-channels attacks like Spectre. Resource should be specifically set as shareable amongst different origins.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that the application/web server sets the Cross-Origin-Resource-Policy header appropriately, and that it sets the Cross-Origin-Resource-Policy header to 'same-origin' for all web pages.</p><p>'same-site' is considered as less secured and should be avoided.</p><p>If resources must be shared, set the header to 'cross-origin'.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that supports the Cross-Origin-Resource-Policy header (https://caniuse.com/mdn-http_headers_cross-origin-resource-policy).</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-QUU1v8UA.css<br>GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>Permissions Policy Header Not Set</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>Permissions Policy Header is an added layer of security that helps to restrict from unauthorized access or usage of browser/client features by web resources. This policy ensures the user privacy by limiting or specifying the features of the browsers can be used by the web resources. Permissions Policy provides a set of standard HTTP headers that allow website owners to limit which features of browsers can be used by the page such as camera, microphone, location, full screen etc.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that your web server, application server, load balancer, etc. is configured to set the Permissions-Policy header.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/favicon.ico<br>GET https://d1.fikri.dev/robots.txt<br>GET https://d1.fikri.dev/sitemap.xml</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>Server Leaks Version Information via "Server" HTTP Response Header Field</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The web/application server is leaking version information via the "Server" HTTP response header. Access to such information may facilitate attackers identifying other vulnerabilities your web/application server is subject to.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that your web server, application server, load balancer, etc. is configured to suppress the "Server" header or provide generic details.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-QUU1v8UA.css<br>GET https://d1.fikri.dev/robots.txt<br>GET https://d1.fikri.dev/sitemap.xml</div></td>
+                </tr>                <tr>
+                    <td><span class="badge INFORMATIONAL">INFORMATIONAL</span></td>
+                    <td><strong>Non-Storable Content</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>The content may be marked as storable by ensuring that the following conditions are satisfied:</p><p>The request method must be understood by the cache and defined as being cacheable ("GET", "HEAD", and "POST" are currently defined as cacheable)</p><p>The response status code must be understood by the cache (one of the 1XX, 2XX, 3XX, 4XX, or 5XX response classes are generally understood)</p><p>The "no-store" cache directive must not appear in the request or response header fields</p><p>For caching by "shared" caches such as "proxy" caches, the "private" response directive must not appear in the response</p><p>For caching by "shared" caches such as "proxy" caches, the "Authorization" header field must not appear in the request, unless the response explicitly allows it (using one of the "must-revalidate", "public", or "s-maxage" Cache-Control response directives)</p><p>In addition to the conditions above, at least one of the following conditions must also be satisfied by the response:</p><p>It must contain an "Expires" header field</p><p>It must contain a "max-age" response directive</p><p>For "shared" caches such as "proxy" caches, it must contain a "s-maxage" response directive</p><p>It must contain a "Cache Control Extension" that allows it to be cached</p><p>It must have a status code that is defined as cacheable by default (200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501).</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/assets/index-BAHUtOye.js<br>GET https://d1.fikri.dev/assets/index-QUU1v8UA.css<br>GET https://d1.fikri.dev/robots.txt<br>GET https://d1.fikri.dev/sitemap.xml</div></td>
+                </tr>                <tr>
+                    <td><span class="badge INFORMATIONAL">INFORMATIONAL</span></td>
+                    <td><strong>Re-examine Cache-control Directives</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>For secure content, ensure the cache-control HTTP header is set with "no-cache, no-store, must-revalidate". If an asset should be cached consider setting the directives "public, max-age, immutable".</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/</div></td>
+                </tr>                <tr>
+                    <td><span class="badge INFORMATIONAL">INFORMATIONAL</span></td>
+                    <td><strong>Information Disclosure - Suspicious Comments</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The response appears to contain suspicious comments which may help an attacker.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Remove all comments that return information that may help an attacker and fix any underlying problems they refer to.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/assets/index-BAHUtOye.js</div></td>
+                </tr>                <tr>
+                    <td><span class="badge INFORMATIONAL">INFORMATIONAL</span></td>
+                    <td><strong>Modern Web Application</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The application appears to be a modern web application. If you need to explore it automatically then the Ajax Spider may well be more effective than the standard one.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>This is an informational alert and so no changes are required.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://d1.fikri.dev/<br>GET https://d1.fikri.dev/favicon.ico<br>GET https://d1.fikri.dev/robots.txt<br>GET https://d1.fikri.dev/sitemap.xml</div></td>
+                </tr></table>        </div>
+        <div class="tool-section">
+            <h3 style="display:flex; align-items:center;">
+                Backend (API) Findings<a href='zap-api.html' target='_blank' class='raw-report-link'>View Full ZAP Report</a></h3>            <table>
+                <tr>
+                    <th style="width: 10%">Risk</th>
+                    <th style="width: 20%">Alert</th>
+                    <th style="width: 40%">Description & Solution</th>
+                    <th style="width: 30%">Affected URLs</th>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td><strong>Cross-Domain Misconfiguration</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>Web browser data loading may be possible, due to a Cross Origin Resource Sharing (CORS) misconfiguration on the web server.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that sensitive data is not available in an unauthenticated manner (using IP address white-listing, for instance).</p><p>Configure the "Access-Control-Allow-Origin" HTTP header to a more restrictive set of domains, or remove all CORS headers entirely, to allow the web browser to enforce the Same Origin Policy (SOP) in a more restrictive manner.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags<br>PUT https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>Unexpected Content-Type was returned</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>A Content-Type of text/html was returned by the server.</p><p>This is not one of the types expected to be returned by an API.</p><p>Raised by the 'Alert on Unexpected Content Types' script</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> </div>
+                    </td>
+                    <td><div class="url-box">OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/computeMetadata/v1/<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/latest/meta-data/<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/metadata/instance<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/opc/v1/instance/</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>X-Content-Type-Options Header Missing</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body, potentially causing the response body to be interpreted and displayed as a content type other than the declared content type. Current (early 2014) and legacy versions of Firefox will use the declared content type (if one is set), rather than performing MIME-sniffing.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that does not perform MIME-sniffing at all, or that can be directed by the web application/web server to not perform MIME-sniffing.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags<br>POST https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>A Server Error response code was returned by the server</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>A response code of 500 was returned by the server.</p><p>This may indicate that the application is failing to handle unexpected input correctly.</p><p>Raised by the 'Alert on HTTP Response Code Error' script</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> </div>
+                    </td>
+                    <td><div class="url-box">PUT https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id</div></td>
+                </tr>                <tr>
+                    <td><span class="badge LOW">LOW</span></td>
+                    <td><strong>Strict-Transport-Security Header Not Set</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags<br>PUT https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id</div></td>
+                </tr>                <tr>
+                    <td><span class="badge INFORMATIONAL">INFORMATIONAL</span></td>
+                    <td><strong>Re-examine Cache-control Directives</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The cache-control header has not been set properly or is missing, allowing the browser and proxies to cache content. For static assets like css, js, or image files this might be intended, however, the resources should be reviewed to ensure that no sensitive content will be cached.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>For secure content, ensure the cache-control HTTP header is set with "no-cache, no-store, must-revalidate". If an asset should be cached consider setting the directives "public, max-age, immutable".</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags</div></td>
+                </tr>                <tr>
+                    <td><span class="badge INFORMATIONAL">INFORMATIONAL</span></td>
+                    <td><strong>Non-Storable Content</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> <p>The content may be marked as storable by ensuring that the following conditions are satisfied:</p><p>The request method must be understood by the cache and defined as being cacheable ("GET", "HEAD", and "POST" are currently defined as cacheable)</p><p>The response status code must be understood by the cache (one of the 1XX, 2XX, 3XX, 4XX, or 5XX response classes are generally understood)</p><p>The "no-store" cache directive must not appear in the request or response header fields</p><p>For caching by "shared" caches such as "proxy" caches, the "private" response directive must not appear in the response</p><p>For caching by "shared" caches such as "proxy" caches, the "Authorization" header field must not appear in the request, unless the response explicitly allows it (using one of the "must-revalidate", "public", or "s-maxage" Cache-Control response directives)</p><p>In addition to the conditions above, at least one of the following conditions must also be satisfied by the response:</p><p>It must contain an "Expires" header field</p><p>It must contain a "max-age" response directive</p><p>For "shared" caches such as "proxy" caches, it must contain a "s-maxage" response directive</p><p>It must contain a "Cache Control Extension" that allows it to be cached</p><p>It must have a status code that is defined as cacheable by default (200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501).</p></div>
+                    </td>
+                    <td><div class="url-box">GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags<br>PUT https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id</div></td>
+                </tr>                <tr>
+                    <td><span class="badge INFORMATIONAL">INFORMATIONAL</span></td>
+                    <td><strong>A Client Error response code was returned by the server</strong></td>
+                    <td>
+                        <div style="font-size:0.9em"><p>A response code of 403 was returned by the server.</p><p>This may indicate that the application is failing to handle unexpected input correctly.</p><p>Raised by the 'Alert on HTTP Response Code Error' script</p></div>
+                        <div class="solution-box"><strong>Solution:</strong> </div>
+                    </td>
+                    <td><div class="url-box">GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/6781446469379446362<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/3026525278788296458<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/actuator/health<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/8257985113493794208<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id/<br>GET https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/tags/<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/computeMetadata/v1/<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/latest/meta-data/<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/metadata/instance<br>OPTIONS https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/opc/v1/instance/<br>POST https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes<br>POST https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/<br>PUT https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>PUT https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id<br>PUT https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes/id/</div></td>
+                </tr></table>        </div>
+
+        <div class="tool-section" style="margin-top: 50px; border-top: 2px solid #eee; padding-top: 20px;">
+            <h2>References</h2>
+            <ul>
+                <li><strong>OWASP ZAP:</strong> <a href="https://www.zaproxy.org/" class="tool-link">Official Site</a></li>
+                <li><strong>Common Weakness Enumeration (CWE):</strong> <a href="https://cwe.mitre.org/" class="tool-link">MITRE CWE</a></li>
+                <li><strong>Remediation:</strong>
+                    <ul>
+                        <li>Implement missing security headers (CSP, HSTS, X-Frame-Options).</li>
+                        <li>Ensure proper input validation and output encoding to prevent XSS.</li>
+                        <li>Review API authentication and authorization controls.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

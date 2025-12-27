@@ -425,7 +425,7 @@ Use this only for:
 
 ❌ Setting passwords directly in `terraform.tfvars`:
 ```hcl
-database_password = "MyPassword123!"  # NEVER DO THIS
+database_password = "MyPassword123!"  # NEVER DO THIS // pragma: allowlist secret 
 ```
 
 ✅ Use AWS Secrets Manager:

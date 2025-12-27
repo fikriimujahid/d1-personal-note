@@ -1,10 +1,10 @@
 {
   "name": "d1-personal-note-api",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc", 
+    "build": "tsc",
     "dev": "ts-node src/index.ts",
     "test": "jest",
     "sam:build": "npm run build && sam build",

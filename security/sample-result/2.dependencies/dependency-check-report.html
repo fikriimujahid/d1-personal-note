@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Dependency Security Report</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f5f5f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; }
+        h2 { color: #2c3e50; margin-top: 40px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .summary { margin-bottom: 30px; padding: 15px; background: #ecf0f1; border-radius: 5px; }
+        
+        .tool-section { margin-top: 30px; }
+        .description { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }
+        .description p { margin: 5px 0; line-height: 1.5; }
+        .tool-link { font-weight: bold; color: #3498db; text-decoration: none; }
+        .tool-link:hover { text-decoration: underline; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; word-wrap: break-word; }
+        th { background-color: #34495e; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; color: white; font-size: 0.85em; font-weight: bold; }
+        .CRITICAL { background-color: #c0392b; }
+        .HIGH { background-color: #e74c3c; }
+        .MEDIUM, .MODERATE { background-color: #f39c12; }
+        .LOW { background-color: #3498db; }
+        
+        .empty-state { padding: 20px; text-align: center; color: #7f8c8d; font-style: italic; background: #fff; border: 1px dashed #ddd; }
+        .vuln-desc { font-size: 0.9em; color: #555; max-height: 100px; overflow-y: auto; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dependency Vulnerability Report</h1>
+        <div class="summary">
+            <strong>Total Vulnerabilities:</strong> 1 <br>
+            <strong>Breakdown:</strong> Critical: 0 | High: 0 | Medium: 1 | Low: 0
+        </div>
+
+        <div class="tool-section">
+            <h2>OWASP Dependency-Check</h2>
+            <div class="description">
+                <p><strong>What is OWASP Dependency-Check?</strong></p>
+                <p>
+                    <a href="https://owasp.org/www-project-dependency-check/" class="tool-link" target="_blank">OWASP Dependency-Check</a> is a Software Composition Analysis (SCA) tool that attempts to detect publicly disclosed vulnerabilities contained within a project's dependencies.
+                    It does this by determining if there is a Common Platform Enumeration (CPE) identifier for a given dependency. If found, it generates a report linking to the associated CVE entries.
+                </p>
+            </div>
+
+            <table>
+                <tr>
+                    <th style="width: 15%">Severity</th>
+                    <th style="width: 20%">Dependency</th>
+                    <th style="width: 15%">CVE</th>
+                    <th style="width: 50%">Description</th>
+                </tr>                <tr>
+                    <td><span class="badge MEDIUM">MEDIUM</span></td>
+                    <td>
+                        <div><strong>js-yaml:3.14.2</strong></div>
+                        <div style="font-size:0.8em; color:#7f8c8d">/src/api/.aws-sam/build/ReadNotesFunction/package-lock.json?/js-yaml:3.14.2</div>
+                    </td>
+                    <td><a href="https://nvd.nist.gov/vuln/detail/CVE-2025-64718" target="_blank" class="tool-link">CVE-2025-64718</a></td>
+                    <td><span class="vuln-desc">js-yaml is a JavaScript YAML parser and dumper. In js-yaml 4.1.0 and below, it's possible for an attacker to modify the prototype of the result of a parsed yaml document via prototype pollution (`__proto__`). All users who parse untrusted yaml documents may be impacted. The problem is patched in js-yaml 4.1.1. Users can protect against this kind of attack on the server by using `node --disable-proto=delete` or `deno` (in Deno, pollution protection is on by default).</span></td>
+                </tr></table>        </div>
+
+        <div class="tool-section" style="margin-top: 50px; border-top: 2px solid #eee; padding-top: 20px;">
+            <h2>References & Remediation</h2>
+            <ul>
+                <li><strong>Tool Page:</strong> <a href="https://owasp.org/www-project-dependency-check/" class="tool-link">OWASP Dependency-Check</a></li>
+                <li><strong>Vulnerability Database:</strong> <a href="https://nvd.nist.gov/" class="tool-link">NIST NVD</a></li>
+                <li><strong>Remediation:</strong>
+                    <ul>
+                        <li>Update the affected dependency to a patched version.</li>
+                        <li>If a direct patch is not available, investigate if the vulnerability is reachable in your specific context (Exploitability Assessment).</li>
+                        <li>Temporarily suppress false positives using a suppression XML file if confirmed.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

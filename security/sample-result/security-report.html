@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Consolidated Security Report</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+        .header { background: #2c3e50; color: #fff; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .meta { text-align: right; font-size: 0.9em; opacity: 0.9; }
+        .exec-brief { padding: 30px; background: #ecf0f1; border-bottom: 1px solid #ddd; }
+        .risk-banner { display: inline-block; padding: 8px 16px; border-radius: 4px; color: white; font-weight: bold; background-color: #c0392b; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .metric-card { background: white; padding: 20px; border-radius: 6px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .metric-val { font-size: 32px; font-weight: bold; color: #2c3e50; }
+        .metric-lbl { font-size: 12px; text-transform: uppercase; color: #7f8c8d; }
+        
+        h2 { border-bottom: 2px solid #3498db; padding-bottom: 10px; color: #2c3e50; margin-top: 40px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #34495e; color: white; }
+        tr:hover { background: #f9f9f9; }
+        .btn-link { display: inline-block; padding: 6px 12px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; font-size: 13px; }
+        .btn-link:hover { background: #2980b9; }
+        
+        /* Category specific borders/icons could go here */
+        .badge { padding: 3px 6px; border-radius: 3px; font-size: 11px; color: white; font-weight: bold; }
+        .bg-crit { background-color: #c0392b; }
+        .bg-high { background-color: #e67e22; }
+        .bg-med { background-color: #f1c40f; color: #333; }
+        .bg-low { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Security Assessment Report</h1>
+                <div style="font-size: 14px; margin-top: 5px;">Project: Security Audit</div>
+            </div>
+            <div class="meta">
+                Date: 2025-12-27 21:47:51<br>
+                Environment: Checked-in Codebase + Runtime (where applicable)
+            </div>
+        </div>
+
+        <div class="exec-brief">
+            <h2>Executive Brief</h2>
+            <div style="margin-bottom: 20px;">
+                <strong>Overall Risk Rating:</strong> <span class="risk-banner">CRITICAL</span>
+            </div>
+            <p>
+                This report consolidates security findings from Secrets, Dependencies, SAST, IaC, and DAST scans.
+                A total of <strong>188</strong> issues were identified.
+            </p>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-val">108</div>
+                    <div class="metric-lbl">Critical</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val">30</div>
+                    <div class="metric-lbl">High</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val">33</div>
+                    <div class="metric-lbl">Medium</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val">17</div>
+                    <div class="metric-lbl">Low</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 30px;">
+            <h2>Overall Findings Summary</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Tool</th>
+                        <th>Total Findings</th>
+                        <th>Severity Breakdown</th>
+                        <th>Detailed Report</th>
+                    </tr>
+                </thead>
+                <tbody>                    <tr>
+                        <td>Secrets</td>
+                        <td>SecretsScanner</td>
+                        <td><strong>108</strong></td>
+                        <td><span class='badge bg-crit'>Crit: 108</span> </td>
+                        <td><a href="1.secrets/secrets.html" class="btn-link" target="_blank">View Details</a></td>
+                    </tr>                    <tr>
+                        <td>Dependencies</td>
+                        <td>OWASP Dependency-Check</td>
+                        <td><strong>1</strong></td>
+                        <td><span class='badge bg-med'>Med: 1</span> </td>
+                        <td><a href="2.dependencies/dependency-check-report.html" class="btn-link" target="_blank">View Details</a></td>
+                    </tr>                    <tr>
+                        <td>SAST</td>
+                        <td>Semgrep</td>
+                        <td><strong>1</strong></td>
+                        <td><span class='badge bg-med'>Med: 1</span> </td>
+                        <td><a href="3.sast/sast.html" class="btn-link" target="_blank">View Details</a></td>
+                    </tr>                    <tr>
+                        <td>IaC</td>
+                        <td>Checkov/TFSec</td>
+                        <td><strong>58</strong></td>
+                        <td><span class='badge bg-high'>High: 30</span> <span class='badge bg-med'>Med: 28</span> </td>
+                        <td><a href="4.iac/iac.html" class="btn-link" target="_blank">View Details</a></td>
+                    </tr>                    <tr>
+                        <td>DAST</td>
+                        <td>OWASP ZAP</td>
+                        <td><strong>20</strong></td>
+                        <td><span class='badge bg-med'>Med: 3</span> <span class='badge bg-low'>Low: 17</span></td>
+                        <td><a href="5.va/va.html" class="btn-link" target="_blank">View Details</a></td>
+                    </tr>                </tbody>
+            </table>
+
+            <h2>Methodology & Scope</h2>
+            <div>
+                <p>The security assessment was performed using the following automated tools:</p>
+                <ul>
+                    <li><strong>Secrets Detection:</strong> Scans for hardcoded credentials (gitleaks, detect-secrets).</li>
+                    <li><strong>Dependencies:</strong> Known CVEs in libraries (OWASP Dependency-Check).</li>
+                    <li><strong>SAST:</strong> Static Code Analysis (Semgrep).</li>
+                    <li><strong>IaC:</strong> Infrastructure Misconfigurations (Checkov, TFSec).</li>
+                    <li><strong>DAST:</strong> Runtime Vulnerability Assessment (OWASP ZAP).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

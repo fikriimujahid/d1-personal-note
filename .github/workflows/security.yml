@@ -158,49 +158,53 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # STEP 3.2: Run Checkov (Policy-as-Code scanner)
+      # STEP 3.2: Run Checkov for Infrastructure (Terraform)
       # Checkov checks for compliance with best practices (CIS, PCI-DSS, etc.)
       - name: Run Checkov (Terraform)
         uses: bridgecrewio/checkov-action@master
         with:
           # directory: Path to your Terraform files
           directory: infra/terraform
-          
-          # framework: What IaC tool to scan
-          # Options: terraform, cloudformation, kubernetes, etc.
           framework: terraform
-          
-          # output_format: How to display results
-          # cli = human-readable console output
-          # sarif = machine-readable GitHub Security format
           output_format: cli,sarif
-          
-          # output_file_path: Where to save each format
-          # console = print CLI output to logs
-          # results.sarif = save SARIF to this file
-          output_file_path: console,results.sarif
-          
-          # quiet: Suppress verbose progress messages
+          output_file_path: console,checkov-infra.sarif
           quiet: true
       
-      # STEP 3.3: Upload Checkov results to GitHub Security
-      - name: Upload Checkov SARIF
+      # STEP 3.3: Upload Checkov Infrastructure Results
+      - name: Upload Checkov Infra SARIF
         uses: github/codeql-action/upload-sarif@v3
         # if: success() || failure() means run unless CANCELLED
-        # Why? Always upload results even if Checkov found issues
         if: success() || failure()
         with:
-          sarif_file: results.sarif
-          category: checkov
+          sarif_file: checkov-infra.sarif
+          category: checkov-infra
 
-      # STEP 3.4: Run Tfsec (Terraform-specific security scanner)
+      # STEP 3.4: Run Checkov for API (SAM/CloudFormation)
+      - name: Run Checkov (API)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: api
+          framework: cloudformation
+          output_format: cli,sarif
+          output_file_path: console,checkov-api.sarif
+          quiet: true
+
+      # STEP 3.5: Upload Checkov API Results
+      - name: Upload Checkov API SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: success() || failure()
+        with:
+          sarif_file: checkov-api.sarif
+          category: checkov-api
+
+      # STEP 3.6: Run Tfsec (Terraform-specific security scanner)
       # Tfsec is faster than Checkov but Terraform-only
       # Running both gives comprehensive coverage
-      - name: Run Tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          # working_directory: Where your .tf files are located
-          working_directory: infra/terraform
+      # - name: Run Tfsec
+      #   uses: aquasecurity/tfsec-action@v1.0.0
+      #   with:
+      #     # working_directory: Where your .tf files are located
+      #     working_directory: infra/terraform
           # Note: This action auto-uploads SARIF results (no manual upload needed)
 
   # ============================================================================
@@ -240,6 +244,10 @@ jobs:
           # args: Additional command-line arguments
           # Using YAML's '>' for multi-line string (newlines become spaces)
           args: >
+            --config p/ci
+            --config p/security-audit
+            --config p/secrets
+            --config p/owasp-top-ten
             --disableAssembly
             --exclude "**/node_modules/**"
             --exclude "**/.git/**"

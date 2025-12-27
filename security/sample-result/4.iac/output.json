@@ -1,0 +1,13 @@
+﻿{
+    "tool":  "Checkov/TFSec",
+    "category":  "IaC",
+    "scan_date":  "2025-12-27T21:47:51Z",
+    "total_findings":  58,
+    "severity":  {
+                     "low":  0,
+                     "critical":  0,
+                     "medium":  28,
+                     "high":  30
+                 },
+    "html_report":  "iac.html"
+}

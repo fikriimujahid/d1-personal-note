@@ -1,0 +1,13 @@
+﻿{
+    "tool":  "OWASP ZAP",
+    "category":  "DAST",
+    "scan_date":  "2025-12-27T21:47:51Z",
+    "total_findings":  20,
+    "severity":  {
+                     "low":  17,
+                     "critical":  0,
+                     "medium":  3,
+                     "high":  0
+                 },
+    "html_report":  "va.html"
+}

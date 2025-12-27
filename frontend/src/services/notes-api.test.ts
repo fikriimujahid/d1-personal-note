@@ -25,7 +25,7 @@ describe('notesApi', () => {
       const mockResponse = {
         data: {
           items: [mockNote],
-          nextToken: 'token123',
+          nextToken: 'token123', // pragma: allowlist secret 
         },
       };
       
@@ -51,7 +51,7 @@ describe('notesApi', () => {
       const result = await notesApi.getNotes('cursor123', 20);
 
       expect(client.get).toHaveBeenCalledWith('/notes', { 
-        params: { limit: 20, nextToken: 'cursor123' } 
+        params: { limit: 20, nextToken: 'cursor123' }  // pragma: allowlist secret 
       });
       expect(result.hasMore).toBe(false);
     });
