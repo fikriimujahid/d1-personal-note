@@ -122,6 +122,8 @@ jobs:
           semgrep scan \
             --config p/ci \
             --config p/security-audit \
+            --config p/secrets \
+            --config p/owasp-top-ten \
             --sarif \
             --output semgrep.sarif
         # Explanation of flags:
@@ -244,10 +246,6 @@ jobs:
           # args: Additional command-line arguments
           # Using YAML's '>' for multi-line string (newlines become spaces)
           args: >
-            --config p/ci
-            --config p/security-audit
-            --config p/secrets
-            --config p/owasp-top-ten
             --disableAssembly
             --exclude "**/node_modules/**"
             --exclude "**/.git/**"
