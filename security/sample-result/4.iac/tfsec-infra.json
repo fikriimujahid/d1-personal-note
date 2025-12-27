@@ -1,0 +1,786 @@
+﻿{
+	"results": [
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 759,
+				"end_line": 759
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 759,
+				"end_line": 759
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 704,
+				"end_line": 704
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 704,
+				"end_line": 704
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 672,
+				"end_line": 672
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 672,
+				"end_line": 672
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 664,
+				"end_line": 664
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 664,
+				"end_line": 664
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 640,
+				"end_line": 640
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 640,
+				"end_line": 640
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 488,
+				"end_line": 488
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 456,
+				"end_line": 456
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 448,
+				"end_line": 448
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.iam_roles",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 424,
+				"end_line": 424
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0010",
+			"long_id": "aws-cloudfront-enable-logging",
+			"rule_description": "Cloudfront distribution should have Access Logging configured",
+			"rule_provider": "aws",
+			"rule_service": "cloudfront",
+			"impact": "Logging provides vital information about access and usage",
+			"resolution": "Enable logging for CloudFront distributions",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/cloudfront/enable-logging/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution#logging_config"
+			],
+			"description": "Distribution does not have logging enabled.",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "module.hosting",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\hosting\\main.tf",
+				"start_line": 403,
+				"end_line": 527
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0089",
+			"long_id": "aws-s3-enable-bucket-logging",
+			"rule_description": "S3 Bucket does not have logging enabled.",
+			"rule_provider": "aws",
+			"rule_service": "s3",
+			"impact": "There is no way to determine the access to this bucket",
+			"resolution": "Add a logging block to the resource to enable access logging",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/enable-bucket-logging/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket"
+			],
+			"description": "Bucket does not have logging enabled",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "module.hosting",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\hosting\\main.tf",
+				"start_line": 51,
+				"end_line": 57
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0132",
+			"long_id": "aws-s3-encryption-customer-key",
+			"rule_description": "S3 encryption should use Customer Managed Keys",
+			"rule_provider": "aws",
+			"rule_service": "s3",
+			"impact": "Using AWS managed keys does not allow for fine grained control",
+			"resolution": "Enable encryption using customer managed keys",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/encryption-customer-key/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#enable-default-server-side-encryption"
+			],
+			"description": "Bucket does not encrypt data with a customer managed key.",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "module.hosting",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\hosting\\main.tf",
+				"start_line": 75,
+				"end_line": 84
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0010",
+			"long_id": "aws-cloudfront-enable-logging",
+			"rule_description": "Cloudfront distribution should have Access Logging configured",
+			"rule_provider": "aws",
+			"rule_service": "cloudfront",
+			"impact": "Logging provides vital information about access and usage",
+			"resolution": "Enable logging for CloudFront distributions",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/cloudfront/enable-logging/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution#logging_config"
+			],
+			"description": "Distribution does not have logging enabled.",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_cloudfront_distribution.website",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\hosting\\main.tf",
+				"start_line": 403,
+				"end_line": 527
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0089",
+			"long_id": "aws-s3-enable-bucket-logging",
+			"rule_description": "S3 Bucket does not have logging enabled.",
+			"rule_provider": "aws",
+			"rule_service": "s3",
+			"impact": "There is no way to determine the access to this bucket",
+			"resolution": "Add a logging block to the resource to enable access logging",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/enable-bucket-logging/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket"
+			],
+			"description": "Bucket does not have logging enabled",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_s3_bucket.website",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\hosting\\main.tf",
+				"start_line": 51,
+				"end_line": 57
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0132",
+			"long_id": "aws-s3-encryption-customer-key",
+			"rule_description": "S3 encryption should use Customer Managed Keys",
+			"rule_provider": "aws",
+			"rule_service": "s3",
+			"impact": "Using AWS managed keys does not allow for fine grained control",
+			"resolution": "Enable encryption using customer managed keys",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/s3/encryption-customer-key/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#enable-default-server-side-encryption"
+			],
+			"description": "Bucket does not encrypt data with a customer managed key.",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_s3_bucket_server_side_encryption_configuration.website",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\hosting\\main.tf",
+				"start_line": 75,
+				"end_line": 84
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.cicd_runner_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 759,
+				"end_line": 759
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*::log-group:*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.cicd_runner_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 759,
+				"end_line": 759
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 704,
+				"end_line": 704
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 704,
+				"end_line": 704
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 672,
+				"end_line": 672
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 672,
+				"end_line": 672
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 664,
+				"end_line": 664
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 664,
+				"end_line": 664
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 640,
+				"end_line": 640
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_prod_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 640,
+				"end_line": 640
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'iam:GetRole' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_dev_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 488,
+				"end_line": 488
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'cloudformation:CreateChangeSet' on wildcarded resource ''",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_dev_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 456,
+				"end_line": 456
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'route53:GetHostedZone' on wildcarded resource '*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_dev_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 448,
+				"end_line": 448
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.1/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 's3:CreateBucket' on wildcarded resource 'arn:aws:s3:::*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "data.aws_iam_policy_document.terraform_dev_policy_doc",
+			"location": {
+				"filename": "C:\\DEMOP\\d1-personal-note\\infra\\terraform\\modules\\iam-roles\\main.tf",
+				"start_line": 424,
+				"end_line": 424
+			}
+		}
+	]
+}

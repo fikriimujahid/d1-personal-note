@@ -32,14 +32,14 @@ export function SignUpPage() {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+    if (!formData.password) {  // pragma: allowlist secret
+      newErrors.password = 'Password is required';  // pragma: allowlist secret
+    } else if (formData.password.length < 8) {  // pragma: allowlist secret
+      newErrors.password = 'Password must be at least 8 characters';  // pragma: allowlist secret
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    if (formData.password !== formData.confirmPassword) {  // pragma: allowlist secret
+      newErrors.confirmPassword = 'Passwords do not match';  // pragma: allowlist secret
     }
 
     setErrors(newErrors);

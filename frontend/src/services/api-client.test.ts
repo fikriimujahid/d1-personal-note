@@ -50,7 +50,7 @@ describe('api-client', () => {
   });
 
   it('adds Authorization header when token exists', () => {
-    const mockToken = 'test-token-123';
+    const mockToken = 'test-token-123'; // pragma: allowlist secret 
     vi.mocked(localStorage.getItem).mockReturnValue(mockToken);
 
     const config = { headers: {} };

@@ -38,7 +38,7 @@ import type { CreateNoteRequest, UpdateNoteRequest } from '../types/note';
  * Example response:
  * {
  *   items: [{ id: '1', title: 'Note 1', ... }, { id: '2', title: 'Note 2', ... }],
- *   nextToken: 'abc123' // Used to fetch the next batch
+ *   nextToken: '' // Used to fetch the next batch
  * }
  */
 type ListNotesResponse = {

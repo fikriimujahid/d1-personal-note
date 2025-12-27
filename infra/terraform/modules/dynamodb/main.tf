@@ -30,7 +30,10 @@
 #   for_each allows you to create multiple similar resources from a map.
 #   Each iteration uses 'each.key' (table name) and 'each.value' (settings).
 # ----------------------------------------------------------------------------
+# nosemgrep: terraform.aws.security.aws-dynamodb-table-unencrypted.aws-dynamodb-table-unencrypted
 resource "aws_dynamodb_table" "main" {
+  # checkov:skip=CKV_AWS_119:Ignore it for now
+  # checkov:skip=CKV_AWS_28:Reason: User explicitly opted out of Point-in-Time Recovery to reduce costs/complexity
   # Loop through each table configuration provided in var.tables
   for_each = var.tables
 

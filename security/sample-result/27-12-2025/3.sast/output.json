@@ -1,0 +1,13 @@
+﻿{
+    "tool":  "Semgrep",
+    "category":  "SAST",
+    "scan_date":  "2025-12-27T21:47:51Z",
+    "total_findings":  1,
+    "severity":  {
+                     "low":  0,
+                     "critical":  0,
+                     "medium":  1,
+                     "high":  0
+                 },
+    "html_report":  "sast.html"
+}

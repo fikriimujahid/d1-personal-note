@@ -1,10 +1,10 @@
 {
   "name": "d1-personal-note-api",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc", 
+    "build": "tsc",
     "dev": "ts-node src/index.ts",
     "test": "jest",
     "sam:build": "npm run build && sam build",
@@ -34,5 +34,8 @@
     "@babel/preset-typescript": "^7.26.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "js-yaml": "^4.1.0"
   }
 }

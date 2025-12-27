@@ -1,0 +1,14 @@
+# Public pages
+https://d1.fikri.dev/
+https://d1.fikri.dev/signin
+https://d1.fikri.dev/signup
+https://d1.fikri.dev/forgot-password
+
+# Authenticated pages (will be scanned with the JWT token injected by the hook)
+https://d1.fikri.dev/notes
+https://d1.fikri.dev/settings
+https://d1.fikri.dev/profile
+
+# API endpoints (if you want to scan them directly)
+https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main
+https://v7b6813a44.execute-api.ap-southeast-1.amazonaws.com/main/notes

@@ -365,7 +365,7 @@ describe('NotesService', () => {
         it('should support pagination with limit and nextToken', async () => {
             const mockNotes = {
                 items: [],
-                nextToken: 'token123', // More pages available
+                nextToken: 'token123', // pragma: allowlist secret 
             };
             mockRepositoryInstance.list.mockResolvedValue(mockNotes);
             // Request with pagination parameters

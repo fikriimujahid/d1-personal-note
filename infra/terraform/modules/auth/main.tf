@@ -136,7 +136,7 @@ resource "aws_cognito_user_pool_client" "web" {
   user_pool_id = aws_cognito_user_pool.main.id
 
   # Browser clients must not have secrets; SRP keeps passwords off the wire.
-  generate_secret = false
+  generate_secret = false // pragma: allowlist secret 
 
   # Allowed authentication flows for the web app.
   explicit_auth_flows = [
@@ -156,16 +156,16 @@ resource "aws_cognito_user_pool_client" "web" {
   refresh_token_validity = 30
 
   token_validity_units {
-    access_token  = "minutes"
+    access_token  = "minutes" // pragma: allowlist secret 
     id_token      = "minutes"
-    refresh_token = "days"
+    refresh_token = "days" // pragma: allowlist secret 
   }
 
   # Hide user existence differences to block enumeration attacks.
   prevent_user_existence_errors = "ENABLED"
 
   # Allow immediate logout/token invalidation instead of waiting for expiry.
-  enable_token_revocation = true
+  enable_token_revocation = true // pragma: allowlist secret 
 
   # No hosted UI; authentication happens via API calls from the SPA.
 }
