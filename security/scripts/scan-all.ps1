@@ -30,8 +30,14 @@ Monthly / Weekly (VMS):
 Source Code Review (major changes):
   .\scan-all.ps1 -Mode on-change
 
-Vulnerability Assessment (DAST):
-  .\scan-all.ps1 -Mode va -TargetUrl https://api.dev.example.com
+Vulnerability Assessment (DAST) - Unauthenticated:
+  .\scan-all.ps1 -Mode va -TargetUrl "URL"
+
+Vulnerability Assessment (DAST) - Authenticated:
+  .\scan-all.ps1 -Mode va -TargetUrl "URL" -TargetApiUrl "API_URL" -AuthUser "USER" -AuthPass "PASS" -CognitoClientId "CLIENT_ID"
+
+Vulnerability Assessment (DAST) - With URL Seed File:
+  .\scan-all.ps1 -Mode va -TargetUrl "URL" -AuthUser "USER" -AuthPass "PASS" -CognitoClientId "CLIENT_ID" -UrlSeedFile ".\security\scripts\zap-urls.txt"
 
 All Checks (Default):
   .\scan-all.ps1
@@ -45,7 +51,19 @@ param (
     [string]$Mode = "all",
 
     # Required ONLY for VA (DAST)
-    [string]$TargetUrl
+    [string]$TargetUrl,
+    
+    # Optional Auth Parameters (for ZAP)
+    [string]$AuthLoginUrl,      # URL for login (API endpoint or Cognito IDP URL)
+    [string]$AuthUser,          # Username
+    [string]$AuthPass,          # Password
+    [string]$CognitoClientId,   # Optional: If using direct Cognito Auth
+    
+    # Optional: API Target URL for Backend Scanning
+    [string]$TargetApiUrl,
+
+    # Optional: URL seed file for comprehensive scanning
+    [string]$UrlSeedFile        # Path to file containing URLs to scan (one per line)
 )
 
 $ErrorActionPreference = "Continue"
@@ -113,62 +131,51 @@ function Run-ScanTool {
 # 1. Secrets Scanning (Continuous / VMS)
 # ==========================================================
 if ($Mode -in @("monthly", "on-change", "all")) {
-    # Run-ScanTool -Name "detect-secrets" -Description "Secrets Scanning" -CommandBlock {
+    Run-ScanTool -Name "detect-secrets" -Description "Secrets Scanning" -CommandBlock {
 
-    #     $baselinePath = Join-Path $ProjectRoot "security\.secrets.baseline"
-    #     $excludePattern = "(node_modules|\.git|\.aws-sam|dist|build|coverage|security|\.terraform|dependency-check-data|result)"
+        $baselinePath = Join-Path $ProjectRoot "security\.secrets.baseline"
+        $excludePattern = "(node_modules|\.git|\.aws-sam|dist|build|coverage|\.terraform|dependency-check-data|result)"
 
-    #     Push-Location $ProjectRoot
-    #     try {
-    #         Write-Host "  Running detect-secrets scan..." -ForegroundColor Gray
-
-    #         if (-not (Test-Path $baselinePath)) {
-    #             Write-Host "  No baseline found. Creating initial baseline..." -ForegroundColor Yellow
-
-    #             # Scan and save with UTF-8 encoding (no BOM) - detect-secrets requires UTF-8
-    #             $tempScan = Join-Path $env:TEMP "detect-secrets-scan-$(Get-Date -Format 'yyyyMMddHHmmss').json"
-    #             detect-secrets scan `
-    #                 --all-files `
-    #                 --exclude-files "$excludePattern" `
-    #                 | Out-File -FilePath $tempScan -Encoding utf8
+        Push-Location $ProjectRoot
+        try {
+            Write-Host "  Running detect-secrets scan..." -ForegroundColor Gray
+            if (-not (Test-Path $baselinePath)) {
+                Write-Host "  No baseline found. Creating initial baseline..." -ForegroundColor Yellow
+                $tempScan = Join-Path $env:TEMP "detect-secrets-scan-$(Get-Date -Format 'yyyyMMddHHmmss').json"
+                detect-secrets scan `
+                    --all-files `
+                    --exclude-files "$excludePattern" `
+                    | Out-File -FilePath $tempScan -Encoding utf8
                 
-    #             # Ensure UTF-8 without BOM
-    #             $utf8NoBom = New-Object System.Text.UTF8Encoding $false
-    #             $content = [System.IO.File]::ReadAllText($tempScan, $utf8NoBom)
-    #             [System.IO.File]::WriteAllText($baselinePath, $content, $utf8NoBom)
-    #             Remove-Item $tempScan -ErrorAction SilentlyContinue
+                $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+                $content = [System.IO.File]::ReadAllText($tempScan, $utf8NoBom)
+                [System.IO.File]::WriteAllText($baselinePath, $content, $utf8NoBom)
+                Remove-Item $tempScan -ErrorAction SilentlyContinue
+                Write-Host "  Baseline created. Run audit before committing:" -ForegroundColor Cyan
+                Write-Host "    detect-secrets audit security\.secrets.baseline" -ForegroundColor Cyan
+                return
+            }
+            detect-secrets scan `
+                --all-files `
+                --exclude-files "$excludePattern" `
+                --baseline $baselinePath
 
-    #             Write-Host "  Baseline created. Run audit before committing:" -ForegroundColor Cyan
-    #             Write-Host "    detect-secrets audit security\.secrets.baseline" -ForegroundColor Cyan
-    #             return
-    #         }
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "  New secrets detected!" -ForegroundColor Red
+                Write-Host "  Run audit to review them:" -ForegroundColor Yellow
+                Write-Host "    detect-secrets audit .secrets.baseline" -ForegroundColor Yellow
+            }
+            Write-Host "  No new secrets found" -ForegroundColor Green
+            Copy-Item $baselinePath "$BASE/1.secrets/detect-secrets.json" -Force
+        } finally {
+            Pop-Location
+        }
+    }
 
-    #         # Baseline exists → check for new secrets
-    #         detect-secrets scan `
-    #             --all-files `
-    #             --exclude-files "$excludePattern" `
-    #             --baseline $baselinePath
-
-    #         if ($LASTEXITCODE -ne 0) {
-    #             Write-Host "  New secrets detected!" -ForegroundColor Red
-    #             Write-Host "  Run audit to review them:" -ForegroundColor Yellow
-    #             Write-Host "    detect-secrets audit .secrets.baseline" -ForegroundColor Yellow
-    #         }
-
-    #         Write-Host "  No new secrets found" -ForegroundColor Green
-
-    #         # Optional: copy baseline as daily result (read-only)
-    #         Copy-Item $baselinePath "$BASE/1.secrets/detect-secrets.json" -Force
-
-    #     } finally {
-    #         Pop-Location
-    #     }
-    # }
-
-    # Run-ScanTool -Name "gitleaks" -Description "Gitleaks" -CommandBlock {
-    #     $reportPath = "$BASE/1.secrets/gitleaks.json"
-    #     gitleaks detect --source $ProjectRoot --no-git --report-format json --report-path $reportPath
-    # }
+    Run-ScanTool -Name "gitleaks" -Description "Gitleaks" -CommandBlock {
+        $reportPath = "$BASE/1.secrets/gitleaks.json"
+        gitleaks detect --source $ProjectRoot --no-git --report-format json --report-path $reportPath
+    }
 }
 
 # ==========================================================
@@ -177,108 +184,66 @@ if ($Mode -in @("monthly", "on-change", "all")) {
 if ($Mode -in @("monthly", "all")) {
     $depCheckOut = "$BASE/2.dependencies"
     
-    # Try local dependency-check first, fallback to Docker
-    # if (Get-Command "dependency-check" -ErrorAction SilentlyContinue) {
-    #     Run-ScanTool -Name "dependency-check" -Description "OWASP Dependency-Check (Local)" -CommandBlock {
-    #         dependency-check --scan . --format JSON --out $depCheckOut --disableAssembly
-    #     }
-    # } 
-    # elseif (Get-Command "docker" -ErrorAction SilentlyContinue) {
-    #      # Calculate relative path for Docker volume mapping
-    #      $CurrentDir = $ProjectRoot
-         
-    #      # Normalize to forward slashes for consistent Docker volume behavior
-    #      $DockerSrc = $CurrentDir.Replace('\', '/')
-         
-    #      # Relative path calculation
-    #      $RelReportPath = $BASE.Replace($CurrentDir, "").Trim('\').Replace('\', '/')
-    #      $ContainerOut = "/src/$RelReportPath/2.dependencies"
+    if (Get-Command "dependency-check" -ErrorAction SilentlyContinue) {
+        Run-ScanTool -Name "dependency-check" -Description "OWASP Dependency-Check (Local)" -CommandBlock {
+            dependency-check --scan . --format JSON --out $depCheckOut --disableAssembly
+        }
+    } 
+    elseif (Get-Command "docker" -ErrorAction SilentlyContinue) {
+         $CurrentDir = $ProjectRoot
+         $DockerSrc = $CurrentDir.Replace('\', '/')
+         $RelReportPath = $BASE.Replace($CurrentDir, "").Trim('\').Replace('\', '/')
+         $ContainerOut = "/src/$RelReportPath/2.dependencies"
+         $DataDir = Join-Path $ProjectRoot "security\dependency-check-data"
+         if (-not (Test-Path $DataDir)) {
+            New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
+         }
+         $DockerData = $DataDir.Replace('\', '/')
 
-    #      # Data directory for persistence
-    #      $DataDir = Join-Path $ProjectRoot "security\dependency-check-data"
-    #      if (-not (Test-Path $DataDir)) {
-    #         New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
-    #      }
-    #      $DockerData = $DataDir.Replace('\', '/')
-
-    #      Run-ScanTool -Name "docker" -Description "OWASP Dependency-Check (Docker)" -CommandBlock {
-    #         Write-Host "Using Docker container: owasp/dependency-check" -ForegroundColor Gray
-    #         Write-Warning "First run (or after expiration) requires downloading NVD vulnerability data. This may take several minutes."
-            
-    #         $DockerReport = "$BASE/2.dependencies".Replace('\', '/')
-    #         docker run --rm -t --user 0 --volume "${DockerSrc}:/src:ro" --volume "${DockerData}:/usr/share/dependency-check/data" --volume "${DockerReport}:/report" owasp/dependency-check --scan /src -f JSON -f HTML -f SARIF --out /report --project "project-dependency-scan" --disableAssembly --exclude "**/node_modules/**" --exclude "**/.git/**" --exclude "**/dist/**"
-    #      }
-    # } else {
-    #     Write-Warning "Neither 'dependency-check' nor 'docker' found. Skipping OWASP Dependency Scan."
-    # }
-
-    # Run-ScanTool -Name "npm" -Description "NPM Audit" -CommandBlock {
-    #     # Find package.json files in subdirectories (e.g., frontend, api)
-    #     # Using Depth 2 to search immediate subfolders but avoid deep node_modules traversal
-    #     $projects = Get-ChildItem -Path $ProjectRoot -Recurse -Depth 2 -Filter "package.json" | 
-    #                 Where-Object { $_.FullName -notmatch "node_modules" }
-
-    #     if (-not $projects) {
-    #         Write-Warning "  No package.json files found to audit."
-    #     }
-
-    #     foreach ($proj in $projects) {
-    #         $dir = $proj.Directory.FullName
-    #         $projName = $proj.Directory.Name
-            
-    #         # npm audit requires package-lock.json
-    #         if (Test-Path (Join-Path $dir "package-lock.json")) {
-    #             Write-Host "  Auditing project: $projName" -ForegroundColor Gray
-                
-    #             # Navigate to project directory
-    #             Push-Location $dir
-    #             try {
-    #                 npm audit --json > "$BASE/2.dependencies/npm-audit-$projName.json"
-    #             } finally {
-    #                 Pop-Location
-    #             }
-    #         } else {
-    #             Write-Warning "  Skipping $projName : No package-lock.json found (run 'npm install' first)"
-    #         }
-    #     }
-    # }
+         Run-ScanTool -Name "docker" -Description "OWASP Dependency-Check (Docker)" -CommandBlock {
+            Write-Host "Using Docker container: owasp/dependency-check" -ForegroundColor Gray
+            $DockerReport = "$BASE/2.dependencies".Replace('\', '/')
+            docker run --rm -t --user 0 --volume "${DockerSrc}:/src:ro" --volume "${DockerData}:/usr/share/dependency-check/data" --volume "${DockerReport}:/report" owasp/dependency-check --scan /src -f JSON -f HTML -f SARIF --out /report --project "project-dependency-scan" --disableAssembly --exclude "**/node_modules/**" --exclude "**/.git/**" --exclude "**/dist/**"
+         }
+    }
 }
 
 # ==========================================================
 # 3. Source Code Review – Automated (SAST)
 # ==========================================================
 if ($Mode -in @("monthly", "on-change", "all")) {
-    # Run-ScanTool -Name "semgrep" -Description "Semgrep SAST" -CommandBlock {
-    #     # Set UTF-8 encoding to avoid Windows encoding issues with special characters
-    #     $env:PYTHONIOENCODING = "utf-8"
-    #     $env:PYTHONUTF8 = "1"
-        
-    #     semgrep scan $ProjectRoot `
-    #     --config p/ci `
-    #     --config p/security-audit `
-    #     --exclude security `
-    #     --exclude node_modules `
-    #     --json `
-    #     --output "$BASE/3.sast/semgrep.json"
-    # }
+    Run-ScanTool -Name "semgrep" -Description "Semgrep SAST" -CommandBlock {
+        $env:PYTHONIOENCODING = "utf-8"
+        $env:PYTHONUTF8 = "1"
+        semgrep scan $ProjectRoot `
+        --config p/ci `
+        --config p/security-audit `
+        --exclude security `
+        --exclude node_modules `
+        --json `
+        --output "$BASE/3.sast/semgrep.json"
+    }
 }
 
 # ==========================================================
 # 4. Infrastructure as Code (Monthly)
 # ==========================================================
 if ($Mode -in @("monthly", "all")) {
-    # Run-ScanTool -Name "checkov" -Description "Checkov IaC (Infra)" -CommandBlock {
-    #     $terraformPath = Join-Path $ProjectRoot "infra\terraform"
-    #     checkov -d $terraformPath --output json | Out-File -FilePath "$BASE/4.iac/checkov-infra.json" -Encoding utf8
-    # }
-
-    # Run-ScanTool -Name "checkov" -Description "Checkov IaC (API)" -CommandBlock {
-    #     $apiPath = Join-Path $ProjectRoot "api"
-    #     checkov -d $apiPath --output json | Out-File -FilePath "$BASE/4.iac/checkov-api.json" -Encoding utf8
-    # }
-
-    Run-ScanTool -Name "tfsec" -Description "tfsec IaC" -CommandBlock {
-        tfsec infra/terraform --format json > "$BASE/4.iac/tfsec.json"
+    Run-ScanTool -Name "checkov" -Description "Checkov IaC (Infra)" -CommandBlock {
+        $terraformPath = Join-Path $ProjectRoot "infra\terraform"
+        checkov -d $terraformPath --output json | Out-File -FilePath "$BASE/4.iac/checkov-infra.json" -Encoding utf8
+    }
+    Run-ScanTool -Name "checkov" -Description "Checkov IaC (API)" -CommandBlock {
+        $apiPath = Join-Path $ProjectRoot "api"
+        checkov -d $apiPath --output json | Out-File -FilePath "$BASE/4.iac/checkov-api.json" -Encoding utf8
+    }
+    Run-ScanTool -Name "tfsec" -Description "tfsec IaC (Infra)" -CommandBlock {
+        $terraformPath = Join-Path $ProjectRoot "infra\terraform"
+        tfsec $terraformPath --format json | Out-File -FilePath "$BASE/4.iac/tfsec-infra.json" -Encoding utf8
+    }
+    Run-ScanTool -Name "tfsec" -Description "tfsec IaC (API)" -CommandBlock {
+        $apiPath = Join-Path $ProjectRoot "api"
+        tfsec $apiPath --format json | Out-File -FilePath "$BASE/4.iac/tfsec-api.json" -Encoding utf8
     }
 }
 
@@ -287,17 +252,87 @@ if ($Mode -in @("monthly", "all")) {
 # ==========================================================
 if ($Mode -eq "va") {
 
-    if (-not $TargetUrl) {
-        Write-Error "TargetUrl is required when Mode=va"
+    if (-not $TargetUrl -and -not $TargetApiUrl) {
+        Write-Error "Either TargetUrl (for Frontend) or TargetApiUrl (for API) is required when Mode=va"
         exit 1
     }
 
     Write-Host "Vulnerability Assessment (OWASP ZAP)" -ForegroundColor Yellow
-    Write-Host "Target: $TargetUrl" -ForegroundColor Cyan
+    
+    if (Get-Command "docker" -ErrorAction SilentlyContinue) {
+        
+        $zapReportDir = "$BASE/5.va"
+        $scriptsDir = Join-Path $ProjectRoot "security\scripts"
+        
+        # Normalize paths
+        $dockerVolReport = $zapReportDir.Replace('\', '/')
+        $dockerVolScripts = $scriptsDir.Replace('\', '/')
 
-    # Baseline scan (safe, non-intrusive)
-    Run-ScanTool -Name "zap-baseline.py" -Description "ZAP Baseline" -CommandBlock {
-        zap-baseline.py -t $TargetUrl -J "$BASE/5.va/zap-baseline.json" -r "$BASE/5.va/zap-baseline.html"
+        # Common Env Vars for Auth
+        $envArgs = @()
+        if ($AuthUser) { $envArgs += "-e", "ZAP_AUTH_USER=$AuthUser" }
+        if ($AuthPass) { $envArgs += "-e", "ZAP_AUTH_PASS=$AuthPass" }
+        if ($AuthLoginUrl) { $envArgs += "-e", "ZAP_AUTH_LOGIN_URL=$AuthLoginUrl" }
+        if ($CognitoClientId) { $envArgs += "-e", "ZAP_COGNITO_CLIENT_ID=$CognitoClientId" }
+
+        # Hook Script arguments
+        $hookArgs = @()
+        if (Test-Path (Join-Path $scriptsDir "zap_hooks.py")) {
+             $hookArgs = @("--hook", "/zap/scripts/zap_hooks.py")
+        }
+
+        # ------------------------------------------------------
+        # A. Frontend (SPA) Scan - zap-baseline.py
+        # ------------------------------------------------------
+        if ($TargetUrl) {
+             Write-Host "  > Frontend Target: $TargetUrl" -ForegroundColor Cyan
+             Run-ScanTool -Name "docker" -Description "ZAP Baseline (Frontend SPA)" -CommandBlock {
+                 
+                 # URL Seed File (optional - for scanning specific pages)
+                 if ($UrlSeedFile -and (Test-Path $UrlSeedFile)) {
+                    Write-Host "  Using URL seed file: $UrlSeedFile" -ForegroundColor Gray
+                    Copy-Item $UrlSeedFile "$zapReportDir/urls.txt" -Force
+                 }
+
+                 # Run Docker
+                 # -j enables Ajax Spider for better SPA coverage
+                 docker run --rm `
+                    -v "${dockerVolReport}:/zap/wrk/:rw" `
+                    -v "${dockerVolScripts}:/zap/scripts/:ro" `
+                    @envArgs `
+                    -t ghcr.io/zaproxy/zaproxy:stable `
+                    zap-baseline.py -t $TargetUrl -j -J zap-frontend.json -r zap-frontend.html @hookArgs
+             }
+        }
+
+        # ------------------------------------------------------
+        # B. API Scan - zap-api-scan.py
+        # ------------------------------------------------------
+        if ($TargetApiUrl) {
+             Write-Host "  > API Target: $TargetApiUrl" -ForegroundColor Cyan
+             Run-ScanTool -Name "docker" -Description "ZAP API Scan (Backend)" -CommandBlock {
+                 
+                 $openApiPath = Join-Path $scriptsDir "openapi.yaml"
+                 if (-not (Test-Path $openApiPath)) {
+                     Write-Error "  openapi.yaml not found in security/scripts/. Cannot run API scan."
+                     return
+                 }
+
+                 # Run Docker
+                 # -f openapi : Format
+                 # -O : Override target URL from spec file
+                 # -S : Safe mode (optional, but good for production)
+                 docker run --rm `
+                    -v "${dockerVolReport}:/zap/wrk/:rw" `
+                    -v "${dockerVolScripts}:/zap/scripts/:ro" `
+                    @envArgs `
+                    -t ghcr.io/zaproxy/zaproxy:stable `
+                    zap-api-scan.py -t /zap/scripts/openapi.yaml -f openapi -O $TargetApiUrl -J zap-api.json -r zap-api.html @hookArgs
+             }
+        }
+
+    } else {
+        Write-Warning "Docker not found. Skipping ZAP scan (Docker required for consistent execution)."
     }
 }
 

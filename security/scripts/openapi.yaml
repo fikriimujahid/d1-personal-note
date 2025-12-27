@@ -1,0 +1,96 @@
+openapi: 3.0.0
+info:
+  title: Personal Note API
+  description: API for managing personal notes.
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/main
+    description: Main Environment
+paths:
+  /notes:
+    get:
+      summary: List all notes
+      operationId: listNotes
+      responses:
+        '200':
+          description: A JSON array of note objects
+    post:
+      summary: Create a new note
+      operationId: createNote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Note created
+    options:
+      summary: CORS Preflight
+      responses:
+        '200':
+          description: OK
+  /notes/tags:
+    get:
+      summary: List all tags
+      operationId: listTags
+      responses:
+        '200':
+          description: Array of tags
+    options:
+      summary: CORS Preflight
+      responses:
+        '200':
+          description: OK
+  /notes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get a note by ID
+      operationId: getNote
+      responses:
+        '200':
+          description: Note object
+    put:
+      summary: Update a note
+      operationId: updateNote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Note updated
+    delete:
+      summary: Delete a note
+      operationId: deleteNote
+      responses:
+        '200':
+          description: Note deleted
+    options:
+        summary: CORS Preflight
+        responses:
+          '200':
+            description: OK
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - BearerAuth: []
