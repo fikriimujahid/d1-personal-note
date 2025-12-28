@@ -73,6 +73,12 @@ Parameters:
     Description: Cognito User Pool ID created by Terraform
     Default: ''
 
+  # Project name for tagging and resource naming
+  Project:
+    Type: String
+    Description: Project name for resource tagging and naming
+    Default: 'd1-personal-note'
+
 # ==============================================================================
 # RESOURCES
 # ==============================================================================
@@ -90,7 +96,9 @@ Resources:
     Properties:
       # Name of the API in AWS console (includes environment for easy identification)
       # !Sub performs string substitution - replaces ${Environment} with actual value
-      Name: !Sub 'd1-personal-note-api-${Environment}'
+      # Name of the API in AWS console (includes environment for easy identification)
+      # !Sub performs string substitution - replaces ${Environment} with actual value
+      Name: !Sub '${Project}-api-${Environment}'
       
       # Stage name (e.g., dev, staging, prod) - becomes part of the URL
       # !Ref retrieves the value of the Environment parameter
@@ -123,11 +131,18 @@ Resources:
             # !Sub builds the ARN by inserting the region, account ID, and pool ID
             UserPoolArn: !Sub 'arn:aws:cognito-idp:ap-southeast-1:${AWS::AccountId}:userpool/${UserPoolId}'
             
-            # Identity configuration
             Identity:
               # How long (in seconds) to cache authorization decisions (1 hour)
               # This reduces calls to Cognito and improves performance
               RevalidateEvery: 3600
+      
+      # Tags for organization and cost tracking
+      Tags:
+        Environment: !Ref Environment
+      # Tags for organization and cost tracking
+      Tags:
+        Environment: !Ref Environment
+        project: !Ref Project
 
   # -----------------------------------------------------------------------------
   # SQS DEAD LETTER QUEUE (DLQ)
@@ -136,9 +151,14 @@ Resources:
   DlqQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub 'd1-personal-note-dlq-${Environment}'
+      QueueName: !Sub '${Project}-dlq-${Environment}'
       MessageRetentionPeriod: 1209600 # 14 days
       KmsMasterKeyId: alias/aws/sqs # Encryption enabled
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: project
+          Value: !Ref Project
 
   # -----------------------------------------------------------------------------
   # READ LAMBDA FUNCTION - Handles fetching notes
@@ -157,7 +177,8 @@ Resources:
         TargetArn: !GetAtt DlqQueue.Arn
       
       # Unique name for this Lambda function in AWS
-      FunctionName: !Sub 'd1-personal-note-read-${Environment}'
+      # Unique name for this Lambda function in AWS
+      FunctionName: !Sub '${Project}-read-${Environment}'
       
       # Location of the code to deploy (. means current directory)
       # SAM will package and upload this code to S3 during deployment
@@ -227,6 +248,7 @@ Resources:
       # Tags for organization and cost tracking in AWS
       Tags:
         Environment: !Ref Environment
+        project: !Ref Project
 
   # -----------------------------------------------------------------------------
   # WRITE LAMBDA FUNCTION - Handles creating, updating, and deleting notes
@@ -245,7 +267,8 @@ Resources:
         TargetArn: !GetAtt DlqQueue.Arn
 
       # Unique name for this Lambda function
-      FunctionName: !Sub 'd1-personal-note-write-${Environment}'
+      # Unique name for this Lambda function
+      FunctionName: !Sub '${Project}-write-${Environment}'
       
       # Location of the code (same as read function)
       CodeUri: .
@@ -323,6 +346,7 @@ Resources:
       # Tags for organization
       Tags:
         Environment: !Ref Environment
+        project: !Ref Project
 
 
 # ==============================================================================
