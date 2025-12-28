@@ -325,42 +325,6 @@ Resources:
         Environment: !Ref Environment
 
 
-  # -----------------------------------------------------------------------------
-  # MONITORING
-  # -----------------------------------------------------------------------------
-
-  ReadErrorsAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: "Alarm if Read function errors > 0"
-      Namespace: "AWS/Lambda"
-      MetricName: "Errors"
-      Dimensions:
-        - Name: "FunctionName"
-          Value: !Ref ReadNotesFunction
-      Statistic: "Sum"
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 0
-      ComparisonOperator: "GreaterThanThreshold"
-      TreatMissingData: "notBreaching"
-
-  WriteErrorsAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: "Alarm if Write function errors > 0"
-      Namespace: "AWS/Lambda"
-      MetricName: "Errors"
-      Dimensions:
-        - Name: "FunctionName"
-          Value: !Ref WriteNotesFunction
-      Statistic: "Sum"
-      Period: 300
-      EvaluationPeriods: 1
-      Threshold: 0
-      ComparisonOperator: "GreaterThanThreshold"
-      TreatMissingData: "notBreaching"
-
 # ==============================================================================
 # OUTPUTS
 # ==============================================================================
@@ -384,8 +348,12 @@ Outputs:
   ReadFunctionName:
     Description: Read Lambda function name
     Value: !Ref ReadNotesFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-ReadFunctionName'
   
   # Name of the write Lambda function
   WriteFunctionName:
     Description: Write Lambda function name
     Value: !Ref WriteNotesFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-WriteFunctionName'

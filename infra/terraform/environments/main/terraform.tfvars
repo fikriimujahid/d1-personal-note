@@ -68,6 +68,13 @@ logging_bucket = null
 logging_prefix = "cloudfront-logs/"
 
 # ============================================================================
+# Monitoring Module Configuration
+# ============================================================================
+
+critical_notification_emails = ["alert@fikri.dev"]
+warning_notification_emails  = ["alert@fikri.dev"]
+
+# ============================================================================
 # Budget Module Configuration
 # ============================================================================
 

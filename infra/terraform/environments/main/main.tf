@@ -209,6 +209,49 @@ module "hosting" {
 }
 
 # ============================================================================
+# Data Source - Get Lambda function names from SAM CloudFormation stack
+# ============================================================================
+
+data "aws_cloudformation_stack" "api" {
+  name = "${var.project}-api-${var.environment}"
+}
+
+# ============================================================================
+# Monitoring Module
+# ============================================================================
+
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  project     = var.project
+  environment = var.environment
+  aws_region  = var.aws_region
+  tags        = local.common_tags
+
+  # Email notifications
+  critical_notification_emails = var.critical_notification_emails
+  warning_notification_emails  = var.warning_notification_emails
+
+  # Service configuration
+  api_name = "${var.project}-api-${var.environment}"
+
+  # Lambda functions from SAM stack (dynamic!)
+  lambda_function_names = [
+    data.aws_cloudformation_stack.api.outputs["ReadFunctionName"],
+    data.aws_cloudformation_stack.api.outputs["WriteFunctionName"]
+  ]
+
+  # DynamoDB tables
+  dynamodb_table_names = [
+    module.database.table_names["notes"]
+  ]
+
+  # Cognito and CloudFront
+  cognito_user_pool_id       = module.auth.user_pool_id
+  cloudfront_distribution_id = module.hosting.cloudfront_distribution_id
+}
+
+# ============================================================================
 # Budget Module
 # ----------------------------------------------------------------------------
 # Purpose: Monitor AWS costs and send alerts.

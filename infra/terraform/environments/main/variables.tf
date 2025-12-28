@@ -161,6 +161,25 @@ variable "logging_prefix" {
 }
 
 # ============================================================================
+# Monitoring & Incident Response
+# ============================================================================
+
+variable "critical_notification_emails" {
+  description = "Email addresses for critical incident notifications (P0/P1)"
+  type        = list(string)
+  validation {
+    condition     = length(var.critical_notification_emails) > 0
+    error_message = "At least one critical notification email is required"
+  }
+}
+
+variable "warning_notification_emails" {
+  description = "Email addresses for warning incident notifications (P2/P3)"
+  type        = list(string)
+  default     = []
+}
+
+# ============================================================================
 # Budget Module Variables
 # ============================================================================
 
