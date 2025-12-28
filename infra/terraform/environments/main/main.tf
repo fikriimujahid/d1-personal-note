@@ -207,3 +207,21 @@ module "hosting" {
   waf_rate_limit = var.waf_rate_limit
   web_acl_id     = var.web_acl_id
 }
+
+# ============================================================================
+# Budget Module
+# ----------------------------------------------------------------------------
+# Purpose: Monitor AWS costs and send alerts.
+# Service: AWS Budgets.
+# ============================================================================
+
+module "budget" {
+  source = "../../modules/budget"
+
+  project     = var.project
+  environment = var.environment
+  # checkov:skip=CKV_SECRET_6: This is not a secret, just a budget limit
+  limit_amount        = var.budget_limit
+  notification_emails = var.budget_notification_emails
+  tags                = local.common_tags
+}

@@ -66,3 +66,10 @@ geo_restriction_locations = []
 enable_logging = false
 logging_bucket = null
 logging_prefix = "cloudfront-logs/"
+
+# ============================================================================
+# Budget Module Configuration
+# ============================================================================
+
+budget_limit               = "10"
+budget_notification_emails = ["alert@fikri.dev"]

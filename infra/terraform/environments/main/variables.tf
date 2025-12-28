@@ -159,3 +159,21 @@ variable "logging_prefix" {
   type        = string
   default     = "cloudfront-logs/"
 }
+
+# ============================================================================
+# Budget Module Variables
+# ============================================================================
+
+variable "budget_limit" {
+  description = "Monthly budget limit in USD"
+  type        = string
+  default     = "10"
+  sensitive   = true
+}
+
+variable "budget_notification_emails" {
+  description = "List of email addresses to notify when budget is exceeded"
+  type        = list(string)
+  default     = []
+  sensitive   = true
+}
