@@ -63,7 +63,8 @@ locals {
   ]
   logs_group_arns = [
     "arn:aws:logs:*:${local.account_id}:log-group:*",
-    "arn:aws:logs:*:${local.account_id}:log-group:*:log-stream:*"
+    "arn:aws:logs:*:${local.account_id}:log-group:*:log-stream:*",
+    "arn:aws:logs:*:${local.account_id}:query-definition:*"
   ]
   cloudfront_arns = [
     "arn:aws:cloudfront::${local.account_id}:distribution/*",
@@ -135,7 +136,12 @@ locals {
     "logs:DeleteLogGroup",
     "logs:PutRetentionPolicy",
     "logs:TagLogGroup",
-    "logs:UntagLogGroup"
+    "logs:UntagLogGroup",
+    "logs:PutQueryDefinition",
+    "logs:DeleteQueryDefinition",
+    "logs:DescribeQueryDefinitions",
+    "logs:ListTagsLogGroup",
+    "logs:ListTagsForResource"
   ]
 
   iam_actions = [
@@ -187,6 +193,51 @@ locals {
     "sqs:TagQueue",
     "sqs:UntagQueue",
     "sqs:ListQueueTags"
+  ]
+
+  # SNS actions
+  sns_topic_actions = [
+    "sns:CreateTopic",
+    "sns:DeleteTopic",
+    "sns:GetTopicAttributes",
+    "sns:SetTopicAttributes",
+    "sns:ListTopics",
+    "sns:TagResource",
+    "sns:UntagResource",
+    "sns:ListTagsForResource",
+    "sns:Subscribe",
+    "sns:ListSubscriptionsByTopic",
+    "sns:GetSubscriptionAttributes",
+    "sns:Unsubscribe"
+  ]
+
+  # Budgets actions
+  budgets_actions = [
+    "budgets:ViewBudget",
+    "budgets:ModifyBudget",
+    "budgets:TagResource",
+    "budgets:ListTagsForResource",
+    "budgets:UntagResource"
+  ]
+
+  # CloudWatch Dashboard & Alarm actions
+  cloudwatch_actions = [
+    "cloudwatch:GetDashboard",
+    "cloudwatch:PutDashboard",
+    "cloudwatch:DeleteDashboard",
+    "cloudwatch:ListDashboards",
+    "cloudwatch:PutMetricAlarm",
+    "cloudwatch:DeleteAlarms",
+    "cloudwatch:DescribeAlarms",
+    "cloudwatch:GetMetricStatistics",
+    "cloudwatch:ListMetrics",
+    "cloudwatch:DisableAlarmActions",
+    "cloudwatch:EnableAlarmActions",
+    "cloudwatch:TagResource",
+    "cloudwatch:UntagResource",
+    "cloudwatch:ListTagsForResource",
+    "cloudwatch:PutCompositeAlarm",
+    "cloudwatch:DeleteCompositeAlarm"
   ]
 
   # CloudFront actions (used by both dev/prod policies)
@@ -326,6 +377,10 @@ locals {
     iam_all           = ["*"]
     cognito_userpools = [local.cognito_userpool_arns]
     sqs_queues        = ["arn:aws:sqs:*:${local.account_id}:${var.project}*"]
+    sns_topics        = ["arn:aws:sns:*:${local.account_id}:${var.project}*"]
+    budgets           = ["arn:aws:budgets::${local.account_id}:budget/${var.project}*"]
+    dashboards        = ["arn:aws:cloudwatch::${local.account_id}:dashboard/${var.project}*"]
+    alarms            = ["arn:aws:cloudwatch:*:${local.account_id}:alarm:*"]
   }
 
   prod_resources = {
@@ -352,6 +407,10 @@ locals {
     iam_all           = ["*"]
     cognito_userpools = [local.cognito_userpool_arns]
     sqs_queues        = ["arn:aws:sqs:*:${local.account_id}:${var.project}*"]
+    sns_topics        = ["arn:aws:sns:*:${local.account_id}:${var.project}*"]
+    budgets           = ["arn:aws:budgets::${local.account_id}:budget/${var.project}*"]
+    dashboards        = ["arn:aws:cloudwatch::${local.account_id}:dashboard/${var.project}*"]
+    alarms            = ["arn:aws:cloudwatch:*:${local.account_id}:alarm:*"]
   }
 }
 
@@ -472,6 +531,30 @@ data "aws_iam_policy_document" "terraform_dev_policy_services_doc" {
     effect    = "Allow"
     actions   = local.sqs_actions
     resources = local.dev_resources.sqs_queues
+  }
+
+  # SNS
+  statement {
+    sid       = "SNSManagement"
+    effect    = "Allow"
+    actions   = local.sns_topic_actions
+    resources = local.dev_resources.sns_topics
+  }
+
+  # Budgets
+  statement {
+    sid       = "BudgetsManagement"
+    effect    = "Allow"
+    actions   = local.budgets_actions
+    resources = local.dev_resources.budgets
+  }
+
+  # CloudWatch Dashboards & Alarms
+  statement {
+    sid       = "CloudWatchManagement"
+    effect    = "Allow"
+    actions   = local.cloudwatch_actions
+    resources = concat(local.dev_resources.dashboards, local.dev_resources.alarms)
   }
 }
 
@@ -709,6 +792,30 @@ data "aws_iam_policy_document" "terraform_prod_policy_services_doc" {
     effect    = "Allow"
     actions   = local.sqs_actions
     resources = local.prod_resources.sqs_queues
+  }
+
+  # SNS
+  statement {
+    sid       = "SNSManagement"
+    effect    = "Allow"
+    actions   = local.sns_topic_actions
+    resources = local.prod_resources.sns_topics
+  }
+
+  # Budgets
+  statement {
+    sid       = "BudgetsManagement"
+    effect    = "Allow"
+    actions   = local.budgets_actions
+    resources = local.prod_resources.budgets
+  }
+
+  # CloudWatch Dashboards & Alarms
+  statement {
+    sid       = "CloudWatchManagement"
+    effect    = "Allow"
+    actions   = local.cloudwatch_actions
+    resources = concat(local.prod_resources.dashboards, local.prod_resources.alarms)
   }
 }
 
