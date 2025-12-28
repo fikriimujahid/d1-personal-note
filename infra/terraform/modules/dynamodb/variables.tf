@@ -347,6 +347,51 @@ variable "tables" {
     ttl_attribute = string
 
     # ------------------------------------------------------------------------
+    # FIELD: point_in_time_recovery_enabled
+    # ------------------------------------------------------------------------
+    # DISASTER RECOVERY - CONTINUOUS BACKUP FEATURE:
+    #   Enables Point-in-Time Recovery (PITR) for the table.
+    #   PITR provides continuous backups of DynamoDB data.
+    #
+    # TYPE: bool (boolean)
+    #   true = Enable PITR (recommended for production)
+    #   false = Disable PITR (development/cost-saving)
+    #
+    # HOW IT WORKS:
+    #   - AWS automatically backs up your table continuously
+    #   - You can restore to any second within the last 35 days
+    #   - Backups are incremental (only changes are stored)
+    #   - No performance impact on your table
+    #
+    # RECOVERY CAPABILITIES:
+    #   - RPO (Recovery Point Objective): ~5 minutes
+    #   - Restore to any point in the last 35 days
+    #   - Restore creates a NEW table (original stays intact)
+    #   - All table data, indexes, and encryption settings preserved
+    #
+    # COST:
+    #   ~20% additional storage cost of your table size
+    #   Example: 10 GB table = ~$0.50/month for PITR
+    #
+    # WHEN TO ENABLE (true):
+    #   ✅ Production environments
+    #   ✅ Tables with critical business data
+    #   ✅ Data that would be hard/impossible to recreate
+    #   ✅ Compliance requirements (many require backup capability)
+    #
+    # WHEN TO DISABLE (false):
+    #   ✅ Development environments (save costs)
+    #   ✅ Ephemeral data that can be recreated
+    #   ✅ Tables used only for caching
+    #
+    # BEST PRACTICE BY ENVIRONMENT:
+    #   dev:     false (save costs)
+    #   staging: true  (test backup/restore procedures)
+    #   prod:    true  (ALWAYS enable for production!)
+    # ------------------------------------------------------------------------
+    point_in_time_recovery_enabled = bool
+
+    # ------------------------------------------------------------------------
     # FIELD: on_demand_throughput
     # ------------------------------------------------------------------------
     # COST CONTROL FOR ON-DEMAND TABLES:

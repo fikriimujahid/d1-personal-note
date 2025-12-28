@@ -29,6 +29,11 @@ This document defines the **Incident Response Plan** for the d1-personal-note ap
 3. **Learn and improve** from each incident
 4. **Maintain compliance** with security requirements
 
+### Related Documents
+- **[Disaster Recovery Plan](disaster-recovery.md)**: Backup scope, RPO/RTO, restore procedures
+- **[Tabletop Exercise - Security Incident](tabletop-exercise-security-incident.md)**: Security incident simulation
+- **[Tabletop Exercise - Stakeholder Report](tabletop-exercise-stakeholder-report.md)**: Stakeholder communication
+
 ---
 
 ## Incident Response Team
