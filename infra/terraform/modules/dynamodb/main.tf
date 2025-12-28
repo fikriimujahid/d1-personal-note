@@ -33,7 +33,7 @@
 # nosemgrep: terraform.aws.security.aws-dynamodb-table-unencrypted.aws-dynamodb-table-unencrypted
 resource "aws_dynamodb_table" "main" {
   # checkov:skip=CKV_AWS_119:Ignore it for now
-  # Note: CKV_AWS_28 (PITR) is now configurable via point_in_time_recovery_enabled variable
+  # checkov:skip=CKV_AWS_28:Reason: User explicitly opted out of Point-in-Time Recovery to reduce costs/complexity
   # Loop through each table configuration provided in var.tables
   for_each = var.tables
 
