@@ -106,6 +106,13 @@ jobs:
           # INITIALIZE TERRAFORM
           # Backend config tells Terraform where to store state files (S3, etc)
           # Using the dynamically generated backend.hcl from secrets
+          # UPDATE TERRAFORM.TFVARS WITH SECRETS
+          # This replaces the placeholder values in the committed file with actual secrets
+          sed -i 's/budget_limit *= *".*"/budget_limit = "${{ secrets.BUDGET_LIMIT }}"/' terraform.tfvars
+          sed -i 's/budget_notification_emails *= *\[.*\]/budget_notification_emails = ${{ secrets.BUDGET_NOTIFICATION_EMAILS }}/' terraform.tfvars
+          sed -i 's/critical_notification_emails *= *\[.*\]/critical_notification_emails = ${{ secrets.BUDGET_NOTIFICATION_EMAILS }}/' terraform.tfvars
+          sed -i 's/warning_notification_emails *= *\[.*\]/warning_notification_emails = ${{ secrets.BUDGET_NOTIFICATION_EMAILS }}/' terraform.tfvars
+
           terraform init -backend-config=backend.hcl
           
           # RUN TERRAFORM PLAN
@@ -194,6 +201,13 @@ jobs:
           
           # INITIALIZE TERRAFORM
           # Using the dynamically generated backend.hcl from secrets
+          # UPDATE TERRAFORM.TFVARS WITH SECRETS
+          # This replaces the placeholder values in the committed file with actual secrets
+          sed -i 's/budget_limit *= *".*"/budget_limit = "${{ secrets.BUDGET_LIMIT }}"/' terraform.tfvars
+          sed -i 's/budget_notification_emails *= *\[.*\]/budget_notification_emails = ${{ secrets.BUDGET_NOTIFICATION_EMAILS }}/' terraform.tfvars
+          sed -i 's/critical_notification_emails *= *\[.*\]/critical_notification_emails = ${{ secrets.BUDGET_NOTIFICATION_EMAILS }}/' terraform.tfvars
+          sed -i 's/warning_notification_emails *= *\[.*\]/warning_notification_emails = ${{ secrets.BUDGET_NOTIFICATION_EMAILS }}/' terraform.tfvars
+
           terraform init -backend-config=backend.hcl
           
           # RUN TERRAFORM APPLY

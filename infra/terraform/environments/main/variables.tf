@@ -159,3 +159,40 @@ variable "logging_prefix" {
   type        = string
   default     = "cloudfront-logs/"
 }
+
+# ============================================================================
+# Monitoring & Incident Response
+# ============================================================================
+
+variable "critical_notification_emails" {
+  description = "Email addresses for critical incident notifications (P0/P1)"
+  type        = list(string)
+  validation {
+    condition     = length(var.critical_notification_emails) > 0
+    error_message = "At least one critical notification email is required"
+  }
+}
+
+variable "warning_notification_emails" {
+  description = "Email addresses for warning incident notifications (P2/P3)"
+  type        = list(string)
+  default     = []
+}
+
+# ============================================================================
+# Budget Module Variables
+# ============================================================================
+
+variable "budget_limit" {
+  description = "Monthly budget limit in USD"
+  type        = string
+  default     = "10"
+  sensitive   = true
+}
+
+variable "budget_notification_emails" {
+  description = "List of email addresses to notify when budget is exceeded"
+  type        = list(string)
+  default     = []
+  sensitive   = true
+}

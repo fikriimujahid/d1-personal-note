@@ -207,3 +207,64 @@ module "hosting" {
   waf_rate_limit = var.waf_rate_limit
   web_acl_id     = var.web_acl_id
 }
+
+# ============================================================================
+# Data Source - Get Lambda function names from SAM CloudFormation stack
+# ============================================================================
+
+data "aws_cloudformation_stack" "api" {
+  name = "${var.project}-stack-${var.environment}"
+}
+
+# ============================================================================
+# Monitoring Module
+# ============================================================================
+
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  project     = var.project
+  environment = var.environment
+  aws_region  = var.aws_region
+  tags        = local.common_tags
+
+  # Email notifications
+  critical_notification_emails = var.critical_notification_emails
+  warning_notification_emails  = var.warning_notification_emails
+
+  # Service configuration
+  api_name = "${var.project}-api-${var.environment}"
+
+  # Lambda functions from SAM stack (dynamic!)
+  lambda_function_names = [
+    data.aws_cloudformation_stack.api.outputs["ReadFunctionName"],
+    data.aws_cloudformation_stack.api.outputs["WriteFunctionName"]
+  ]
+
+  # DynamoDB tables
+  dynamodb_table_names = values(module.database.table_name)
+
+  # Cognito and CloudFront
+  cognito_user_pool_id       = module.auth.user_pool_id
+  enable_cognito_alarms      = true
+  cloudfront_distribution_id = module.hosting.cloudfront_distribution_id
+  enable_cloudfront_alarms   = true
+}
+
+# ============================================================================
+# Budget Module
+# ----------------------------------------------------------------------------
+# Purpose: Monitor AWS costs and send alerts.
+# Service: AWS Budgets.
+# ============================================================================
+
+module "budget" {
+  source = "../../modules/budget"
+
+  project     = var.project
+  environment = var.environment
+  # checkov:skip=CKV_SECRET_6: This is not a secret, just a budget limit
+  limit_amount        = var.budget_limit
+  notification_emails = var.budget_notification_emails
+  tags                = local.common_tags
+}

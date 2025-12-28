@@ -47,7 +47,7 @@ All Checks (Default):
 
 param (
     [Parameter(Mandatory = $false)]
-    [ValidateSet("monthly", "on-change", "va", "all", "iac", "sast")]
+    [ValidateSet("monthly", "on-change", "va", "all", "iac", "sast", "secrets")]
     [string]$Mode = "all",
 
     # Required ONLY for VA (DAST)
@@ -130,7 +130,7 @@ function Run-ScanTool {
 # ==========================================================
 # 1. Secrets Scanning (Continuous / VMS)
 # ==========================================================
-if ($Mode -in @("monthly", "on-change", "all")) {
+if ($Mode -in @("monthly", "on-change", "all", "secrets")) {
     Run-ScanTool -Name "detect-secrets" -Description "Secrets Scanning" -CommandBlock {
 
         $baselinePath = Join-Path $ProjectRoot "security\.secrets.baseline"

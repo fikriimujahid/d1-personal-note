@@ -348,8 +348,12 @@ Outputs:
   ReadFunctionName:
     Description: Read Lambda function name
     Value: !Ref ReadNotesFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-ReadFunctionName'
   
   # Name of the write Lambda function
   WriteFunctionName:
     Description: Write Lambda function name
     Value: !Ref WriteNotesFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-WriteFunctionName'
