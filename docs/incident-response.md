@@ -108,7 +108,7 @@ aws cognito-idp admin-user-global-sign-out `
 
 # 2. Disable compromised IAM credentials
 aws iam update-access-key `
-  --access-key-id AKIAXXXXXXXXXXXXXXXX `
+  --access-key-id $accessKey `
   --status Inactive
 
 # 3. Enable CloudTrail logging if not already enabled

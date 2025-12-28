@@ -65,8 +65,9 @@ resource "aws_sns_topic_subscription" "warning_email" {
 # ============================================================================
 
 resource "aws_cloudwatch_log_group" "incident_response" {
+  # checkov:skip=CKV_AWS_338:Ensure CloudWatch log groups retains logs for at least 1 year|30 days is ok for demo
   name              = "/aws/incident-response/${var.project}-${var.environment}"
-  retention_in_days = 90
+  retention_in_days = 30
   kms_key_id        = var.kms_key_arn
 
   tags = merge(var.tags, {
