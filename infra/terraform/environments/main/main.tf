@@ -213,7 +213,7 @@ module "hosting" {
 # ============================================================================
 
 data "aws_cloudformation_stack" "api" {
-  name = "${var.project}-api-${var.environment}"
+  name = "${var.project}-stack-${var.environment}"
 }
 
 # ============================================================================
@@ -242,13 +242,13 @@ module "monitoring" {
   ]
 
   # DynamoDB tables
-  dynamodb_table_names = [
-    module.database.table_names["notes"]
-  ]
+  dynamodb_table_names = values(module.database.table_name)
 
   # Cognito and CloudFront
   cognito_user_pool_id       = module.auth.user_pool_id
+  enable_cognito_alarms      = true
   cloudfront_distribution_id = module.hosting.cloudfront_distribution_id
+  enable_cloudfront_alarms   = true
 }
 
 # ============================================================================

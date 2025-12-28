@@ -65,10 +65,22 @@ variable "cognito_user_pool_id" {
   default     = ""
 }
 
+variable "enable_cognito_alarms" {
+  description = "Enable alarms for Cognito User Pool"
+  type        = bool
+  default     = false
+}
+
 variable "cloudfront_distribution_id" {
   description = "CloudFront distribution ID to monitor"
   type        = string
   default     = ""
+}
+
+variable "enable_cloudfront_alarms" {
+  description = "Enable alarms for CloudFront"
+  type        = bool
+  default     = false
 }
 
 # ============================================================================

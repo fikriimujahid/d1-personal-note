@@ -314,7 +314,7 @@ locals {
     dynamodb_tables  = ["arn:aws:dynamodb:*:${local.account_id}:table/*"]
     route53_acm      = ["*"]
     cf_stacks = [
-      "arn:aws:cloudformation:*:${local.account_id}:stack/*-stack-dev*/*",
+      "arn:aws:cloudformation:*:${local.account_id}:stack/${var.project}*-dev*/*",
       # SAM CLI default stack used during guided deployments
       "arn:aws:cloudformation:*:${local.account_id}:stack/aws-sam-cli-managed-default/*",
       # SAM transforms (required for serverless deployments)
@@ -340,7 +340,7 @@ locals {
     dynamodb_tables  = ["arn:aws:dynamodb:*:${local.account_id}:table/*"]
     route53_acm      = ["*"]
     cf_stacks = [
-      "arn:aws:cloudformation:*:${local.account_id}:stack/*-stack-main*/*",
+      "arn:aws:cloudformation:*:${local.account_id}:stack/${var.project}*-main*/*",
       # SAM CLI default stack used during guided deployments
       "arn:aws:cloudformation:*:${local.account_id}:stack/aws-sam-cli-managed-default/*",
       # SAM transforms (required for serverless deployments)

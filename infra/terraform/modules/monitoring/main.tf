@@ -381,7 +381,7 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_system_errors" {
 # ============================================================================
 
 resource "aws_cloudwatch_metric_alarm" "cognito_user_auth_errors" {
-  count = var.cognito_user_pool_id != "" ? 1 : 0
+  count = var.enable_cognito_alarms ? 1 : 0
 
   alarm_name          = "${var.project}-${var.environment}-cognito-auth-errors"
   alarm_description   = "High rate of Cognito authentication failures"
@@ -407,7 +407,7 @@ resource "aws_cloudwatch_metric_alarm" "cognito_user_auth_errors" {
 # ============================================================================
 
 resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_errors" {
-  count = var.cloudfront_distribution_id != "" ? 1 : 0
+  count = var.enable_cloudfront_alarms ? 1 : 0
 
   alarm_name          = "${var.project}-${var.environment}-cloudfront-5xx-errors"
   alarm_description   = "CloudFront 5xx error rate is too high"
