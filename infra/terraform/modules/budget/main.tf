@@ -24,7 +24,7 @@ resource "aws_budgets_budget" "cost" {
   # Format: "user:TagKey$TagValue" for user-defined tags
   cost_filter {
     name   = "TagKeyValue"
-    values = ["user:project$${var.project}"]
+    values = [format("user:project$%s", var.project)]
   }
 
   # Notification 1: Alert at 80% of budget (actual spending)
