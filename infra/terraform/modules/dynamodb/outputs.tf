@@ -122,3 +122,38 @@ output "table_arn" {
   description = "Map of DynamoDB table ARNs created by this module (keyed by table logical name)"
   value       = { for k, t in aws_dynamodb_table.main : k => t.arn }
 }
+
+# ------------------------------------------------------------------------------
+# OUTPUT: DynamoDB Point-in-Time Recovery Status
+# ------------------------------------------------------------------------------
+# WHAT THIS OUTPUTS:
+#   A map showing the PITR (Point-in-Time Recovery) status for each table.
+#
+# WHY THIS IS IMPORTANT:
+#   PITR is a critical disaster recovery feature. This output allows you to:
+#   - Verify PITR is enabled for production tables
+#   - Monitor backup configuration across environments
+#   - Use in automated compliance checks
+#
+# OUTPUT FORMAT:
+#   {
+#     "users"  = true   # PITR enabled
+#     "logs"   = false  # PITR disabled
+#   }
+#
+# DISASTER RECOVERY:
+#   When PITR is enabled, you can restore to any point within 35 days.
+#   Use this command to restore:
+#   
+#   aws dynamodb restore-table-to-point-in-time \
+#     --source-table-name <table-name> \
+#     --target-table-name <restored-table-name> \
+#     --restore-date-time <ISO-8601-timestamp>
+#
+# BEST PRACTICE:
+#   Always verify PITR is enabled for production tables during DR testing.
+# ------------------------------------------------------------------------------
+output "pitr_enabled" {
+  description = "Map showing Point-in-Time Recovery status for each table (true = enabled)"
+  value       = { for k, t in aws_dynamodb_table.main : k => t.point_in_time_recovery[0].enabled }
+}

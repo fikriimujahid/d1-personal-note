@@ -20,8 +20,9 @@ tables = {
       { name = "pk", type = "S" },
       { name = "sk", type = "S" }
     ]
-    deletion_protection_enabled = false
-    ttl_attribute               = "ttl"
+    deletion_protection_enabled    = false
+    point_in_time_recovery_enabled = false # Enable for disaster recovery (RPO: 5 min, 35-day retention)
+    ttl_attribute                  = "ttl"
     on_demand_throughput = {
       max_read_request_units  = 2
       max_write_request_units = 2

@@ -255,6 +255,36 @@ resource "aws_dynamodb_table" "main" {
   deletion_protection_enabled = each.value.deletion_protection_enabled
 
   # --------------------------------------------------------------------------
+  # Point-in-Time Recovery (PITR) - Disaster Recovery
+  # --------------------------------------------------------------------------
+  # WHAT THIS DOES:
+  #   Enables continuous backups with the ability to restore to any
+  #   point within the last 35 days (to the second).
+  #
+  # DISASTER RECOVERY BENEFIT:
+  #   - Recover from accidental deletes or writes
+  #   - Restore data after ransomware/malicious activity
+  #   - RPO (Recovery Point Objective) of ~5 minutes
+  #
+  # COST:
+  #   ~20% of table storage costs per month
+  #   Example: 10 GB table = ~$0.50/month for PITR
+  #
+  # HOW TO RESTORE:
+  #   aws dynamodb restore-table-to-point-in-time \
+  #     --source-table-name original-table \
+  #     --target-table-name restored-table \
+  #     --restore-date-time 2025-12-28T10:00:00Z
+  #
+  # BEST PRACTICE:
+  #   Always enable for production data. The small cost is worth
+  #   the protection against data loss.
+  # --------------------------------------------------------------------------
+  point_in_time_recovery {
+    enabled = each.value.point_in_time_recovery_enabled
+  }
+
+  # --------------------------------------------------------------------------
   # On-Demand Throughput Limits (Cost Control)
   # --------------------------------------------------------------------------
   # WHAT THIS IS:
